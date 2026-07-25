@@ -58,19 +58,12 @@ export const getOrderItemList = (items: unknown): OrderItem[] => {
   }
 
   return rawList
-    .filter(
-      (item): item is Record<string, unknown> =>
-        typeof item === 'object' && item !== null
-    )
+    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
     .map((item) => {
-      const name = String(
-        item.product_name_snapshot || item.product_name || 'Sản phẩm'
-      );
+      const name = String(item.product_name_snapshot || item.product_name || 'Sản phẩm');
       const unitPrice = Number(item.unit_price || 0);
       const qty = Number(item.quantity || 1);
-      const total = Number(
-        item.total_item_price || item.subtotal || unitPrice * qty
-      );
+      const total = Number(item.total_item_price || item.subtotal || unitPrice * qty);
 
       return {
         id: String(item.id || ''),

@@ -2,15 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
 import { Menu, Sun, Moon, LogOut, User, Search, Bell } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/stores/useAuthStore';
+import { useUIStore } from '@/stores/useUIStore';
+import { useRealtimeStore } from '@/stores/useRealtimeStore';
 
-interface HeaderProps {
-  isDarkMode: boolean;
-  toggleTheme: () => void;
-  setMobileMenuOpen: (open: boolean) => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, setMobileMenuOpen }) => {
+export const Header: React.FC = () => {
   const { user, logout } = useAuthStore();
+  const { isDarkMode, toggleTheme, setMobileMenuOpen } = useUIStore();
+  const { unreadNotificationsCount } = useRealtimeStore();
   const navigate = useNavigate();
 
   // UI: Biến state quản lý trạng thái đóng/mở dropdown thông tin cá nhân tuân thủ is[Feature][State]
@@ -74,7 +72,11 @@ export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, setMobi
           title="Thông báo"
         >
           <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full"></span>
+          {unreadNotificationsCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 min-w-[8px] h-2 px-1 bg-rose-500 text-[9px] font-bold text-white rounded-full flex items-center justify-center">
+              {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+            </span>
+          )}
         </button>
 
         {/* Theme Toggle Button */}

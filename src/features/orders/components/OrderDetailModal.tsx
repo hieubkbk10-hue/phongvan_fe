@@ -214,7 +214,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                         <td className="px-4 py-3 text-center font-bold">{item.quantity}</td>
                         <td className="px-4 py-3 text-right font-bold font-mono text-slate-900 dark:text-slate-100">
                           {Number(
-                            item.total_item_price || item.subtotal || Number(item.unit_price) * item.quantity
+                            item.total_item_price ||
+                              item.subtotal ||
+                              Number(item.unit_price) * item.quantity
                           ).toLocaleString('vi-VN')}{' '}
                           đ
                         </td>

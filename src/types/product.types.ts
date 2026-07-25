@@ -68,11 +68,7 @@ export const getMediaList = (media: unknown): MediaItem[] => {
       return {
         id: String(item.id || ''),
         url: String(item.url || ''),
-        name: item.name
-          ? String(item.name)
-          : item.filename
-            ? String(item.filename)
-            : undefined,
+        name: item.name ? String(item.name) : item.filename ? String(item.filename) : undefined,
         size: typeof item.size === 'number' ? item.size : undefined,
         mime_type: item.mime_type ? String(item.mime_type) : undefined,
         is_main: isPrimary,

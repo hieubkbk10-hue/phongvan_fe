@@ -19,10 +19,10 @@ export const CompleteOrderModal: React.FC<CompleteOrderModalProps> = ({
   order,
   isLoading = false,
 }) => {
-  const {
-    register,
-    handleSubmit,
-  } = useForm<{ delivery_date?: string; shipping_carrier?: string }>();
+  const { register, handleSubmit } = useForm<{
+    delivery_date?: string;
+    shipping_carrier?: string;
+  }>();
 
   if (!isOpen || !order) return null;
 

@@ -249,7 +249,8 @@ function ProductsPage() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                 {products.map((product) => {
                   const mediaList = getMediaList(product.media);
-                  const mainImage = mediaList.find((m) => m.is_main || m.is_primary) || mediaList[0];
+                  const mainImage =
+                    mediaList.find((m) => m.is_main || m.is_primary) || mediaList[0];
 
                   return (
                     <tr

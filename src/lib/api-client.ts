@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 import { env } from '@/config/env';
 import { useAuthStore } from '@/features/auth/stores/useAuthStore';
+import { toast } from '@/stores/useToastStore';
 import type { ApiResponse } from '@/types';
 
 export const apiClient = axios.create({
@@ -31,7 +32,7 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     const status = error.response?.status;
     const responseData = error.response?.data as ApiResponse | undefined;
-    const msg = responseData?.message;
+    const msg = responseData?.message || error.message;
 
     // QUYỀN: Xóa token và điều hướng về trang Login khi phiên làm việc bị từ chối
     if (status === 401 || msg === 'Unauthenticated.') {
@@ -39,7 +40,10 @@ apiClient.interceptors.response.use(
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/login')) {
         window.location.href = '/auth/login';
       }
+    } else if (status && status >= 500) {
+      toast.error('Lỗi máy chủ: ' + (msg || 'Đã có lỗi hệ thống xảy ra'), 'Lỗi hệ thống');
     }
+
     return Promise.reject(error);
   }
 );

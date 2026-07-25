@@ -72,7 +72,8 @@ export const createOrder = async (data: CreateOrderInput) => {
   if (data.customer_id) payload.customer_id = data.customer_id;
   if (data.customer_name_snapshot) payload.customer_name_snapshot = data.customer_name_snapshot;
   if (data.customer_phone_snapshot) payload.customer_phone_snapshot = data.customer_phone_snapshot;
-  if (data.customer_address_snapshot) payload.customer_address_snapshot = data.customer_address_snapshot;
+  if (data.customer_address_snapshot)
+    payload.customer_address_snapshot = data.customer_address_snapshot;
   if (data.delivery_date) payload.delivery_date = data.delivery_date;
   if (data.shipping_carrier) payload.shipping_carrier = data.shipping_carrier;
   if (data.bank_name) payload.bank_name = data.bank_name;
