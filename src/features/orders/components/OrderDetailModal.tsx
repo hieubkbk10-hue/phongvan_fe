@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ShoppingCart, User, Phone, MapPin, Calendar, Truck, CreditCard, Building2, Clock, CheckCircle2, XCircle, Package, AlertCircle } from 'lucide-react';
+import { X, ShoppingCart, User, Phone, MapPin, Calendar, Truck, Building2, Clock, CheckCircle2, XCircle, Package, AlertCircle } from 'lucide-react';
 import type { Order, OrderStatus } from '../types';
 
 interface OrderDetailModalProps {

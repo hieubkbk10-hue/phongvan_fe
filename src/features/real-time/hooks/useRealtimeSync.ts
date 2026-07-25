@@ -20,8 +20,11 @@ export const useRealtimeSync = ({
     onEventRef.current = onEvent;
   }, [onEvent]);
 
+  const serializedEvents = JSON.stringify(events);
+
   useEffect(() => {
-    if (!channel || !events || events.length === 0) return;
+    const parsedEvents: string[] = JSON.parse(serializedEvents);
+    if (!channel || !parsedEvents || parsedEvents.length === 0) return;
 
     let chObj: any;
     if (isPrivate) {
@@ -32,7 +35,7 @@ export const useRealtimeSync = ({
 
     const listeners: { [event: string]: (data: any) => void } = {};
 
-    events.forEach((evt) => {
+    parsedEvents.forEach((evt) => {
       const handler = (data: any) => {
         if (onEventRef.current) {
           onEventRef.current(evt, data);
@@ -43,7 +46,7 @@ export const useRealtimeSync = ({
     });
 
     return () => {
-      events.forEach((evt) => {
+      parsedEvents.forEach((evt) => {
         if (listeners[evt]) {
           chObj.stopListening(evt, listeners[evt]);
         }
@@ -54,5 +57,5 @@ export const useRealtimeSync = ({
         echo.leave(channel);
       }
     };
-  }, [channel, JSON.stringify(events), isPrivate]);
+  }, [channel, serializedEvents, isPrivate]);
 };

@@ -1,0 +1,11 @@
+echo "🚀 [Harness Engine] Đang quét chất lượng code trước khi commit..."
+
+# 1. Chạy linter siêu tốc với cơ chế gắt: Biến warning thành LỖI (Zero warning tolerance)
+echo "⚡ [Oxlint] Đang quét chất lượng code và biến mọi warning thành LỖI..."
+npx oxlint --deny-warnings || exit 1
+
+# 2. Chạy kiểm tra kiểu dữ liệu & build thử nghiệm dự án (Typecheck & Vite build)
+echo "📦 [TypeScript & Build] Đang typecheck và thử nghiệm build dự án..."
+npm run build || exit 1
+
+echo "✅ [Harness Engine] Đạt tiêu chuẩn chất lượng gắt! Cho phép commit."

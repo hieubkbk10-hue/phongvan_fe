@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wifi, Radio, Trash2, CheckCircle2, Server, Terminal } from 'lucide-react';
+import { Radio, Trash2, Server, Terminal } from 'lucide-react';
 import { useEchoListener } from '../hooks/useEchoListener';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,7 +8,7 @@ export const SoketiStatusCard: React.FC = () => {
   const [channel, setChannel] = useState<string>('notifications');
   const [event, setEvent] = useState<string>('.UserNotified');
 
-  const { logs, isConnected, clearLogs } = useEchoListener(channel, event, 'public');
+  const { logs, clearLogs } = useEchoListener(channel, event, 'public');
 
   const soketiHost = import.meta.env.VITE_SOKETI_HOST || '127.0.0.1';
   const soketiPort = import.meta.env.VITE_SOKETI_PORT || '6001';
