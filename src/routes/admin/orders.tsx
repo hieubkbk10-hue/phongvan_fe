@@ -34,9 +34,17 @@ function OrdersPage() {
         search: search || undefined,
         status: statusFilter,
       });
-      setOrders(result.data);
+
+      let items = Array.isArray(result.data) ? result.data : [];
+      if (statusFilter !== undefined) {
+        items = items.filter((o) => Number(o.status) === Number(statusFilter));
+      }
+
+      setOrders(items);
       if (result.meta?.pagination) {
         setTotalPages(result.meta.pagination.total_pages);
+      } else {
+        setTotalPages(1);
       }
     } catch (error) {
       console.error('Lỗi tải danh sách đơn hàng:', error);
@@ -63,10 +71,14 @@ function OrdersPage() {
     const previousOrders = [...orders];
     try {
       setActionLoading(true);
-      // Optimistic Status Update to Completed (2)
-      setOrders((prev) =>
-        prev.map((o) => (o.id === selectedOrder.id ? { ...o, status: 2 } : o))
-      );
+      // Optimistic Status Update to Completed (2) - 0ms Latency
+      setOrders((prev) => {
+        const updated = prev.map((o) => (o.id === selectedOrder.id ? { ...o, status: 2 as OrderStatus } : o));
+        if (statusFilter !== undefined) {
+          return updated.filter((o) => Number(o.status) === Number(statusFilter));
+        }
+        return updated;
+      });
       setCompleteModalOpen(false);
       await completeOrder(selectedOrder.id, data);
       setSelectedOrder(null);
@@ -83,10 +95,14 @@ function OrdersPage() {
     const previousOrders = [...orders];
     try {
       setActionLoading(true);
-      // Optimistic Status Update to Cancelled (5)
-      setOrders((prev) =>
-        prev.map((o) => (o.id === selectedOrder.id ? { ...o, status: 5 } : o))
-      );
+      // Optimistic Status Update to Cancelled (5) - 0ms Latency
+      setOrders((prev) => {
+        const updated = prev.map((o) => (o.id === selectedOrder.id ? { ...o, status: 5 as OrderStatus } : o));
+        if (statusFilter !== undefined) {
+          return updated.filter((o) => Number(o.status) === Number(statusFilter));
+        }
+        return updated;
+      });
       setCancelModalOpen(false);
       await cancelOrder(selectedOrder.id, data);
       setSelectedOrder(null);
@@ -110,7 +126,7 @@ function OrdersPage() {
     if (!confirm(`Bạn có chắc chắn muốn xóa đơn hàng "${order.code}"?`)) return;
 
     const previousOrders = [...orders];
-    // Optimistic Delete
+    // Optimistic Delete - 0ms Latency
     setOrders((prev) => prev.filter((o) => o.id !== order.id));
     try {
       await deleteOrder(order.id);
@@ -187,7 +203,7 @@ function OrdersPage() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Filter size={16} className="text-slate-400 shrink-0" />
           <select
-            value={statusFilter === undefined ? 'all' : statusFilter}
+            value={statusFilter === undefined ? 'all' : String(statusFilter)}
             onChange={(e) => {
               const val = e.target.value;
               setStatusFilter(val === 'all' ? undefined : (Number(val) as OrderStatus));
@@ -196,9 +212,9 @@ function OrdersPage() {
             className="w-full sm:w-52 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-amber-500"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value={1}>Pending (1 - Cần xử lý)</option>
-            <option value={2}>Completed (2 - Hoàn thành)</option>
-            <option value={5}>Cancelled (5 - Đã hủy)</option>
+            <option value="1">Pending (1 - Cần xử lý)</option>
+            <option value="2">Completed (2 - Hoàn thành)</option>
+            <option value="5">Cancelled (5 - Đã hủy)</option>
           </select>
         </div>
       </div>

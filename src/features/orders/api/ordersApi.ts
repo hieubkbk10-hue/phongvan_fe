@@ -2,22 +2,25 @@ import { apiClient } from '@/lib/api-client';
 import type { Order, OrderListParams, CreateOrderInput, CompleteOrderInput, CancelOrderInput } from '../types';
 
 export const getOrders = async (params?: OrderListParams) => {
-  const searchParts: string[] = [];
-  if (params?.search) {
-    searchParts.push(`code:${params.search}`);
-  }
-  if (params?.status !== undefined) {
-    searchParts.push(`status:${params.status}`);
-  }
-
   const queryParams: Record<string, any> = {
     page: params?.page || 1,
     limit: params?.limit || 15,
     include: 'items,customer',
   };
 
-  if (searchParts.length > 0) {
-    queryParams.search = searchParts.join(';');
+  if (params?.status !== undefined) {
+    queryParams.status = params.status;
+  }
+
+  if (params?.search && params.search.trim() !== '') {
+    const s = params.search.trim();
+    if (s.toUpperCase().startsWith('ORD-')) {
+      queryParams.search = `code:${s}`;
+    } else if (/^\+?[0-9]+$/.test(s)) {
+      queryParams.search = `customer_phone_snapshot:${s}`;
+    } else {
+      queryParams.search = `customer_name_snapshot:${s}`;
+    }
   }
 
   const response = await apiClient.get<{
