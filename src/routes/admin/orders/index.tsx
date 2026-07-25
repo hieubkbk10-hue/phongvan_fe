@@ -82,6 +82,7 @@ function OrdersPage() {
       setCompleteModalOpen(false);
       await completeOrder(selectedOrder.id, data);
       setSelectedOrder(null);
+      await fetchOrders();
     } catch (err: any) {
       setOrders(previousOrders); // Rollback on error
       alert(err?.response?.data?.message || 'Hoàn thành đơn hàng thất bại.');
@@ -106,6 +107,7 @@ function OrdersPage() {
       setCancelModalOpen(false);
       await cancelOrder(selectedOrder.id, data);
       setSelectedOrder(null);
+      await fetchOrders();
     } catch (err: any) {
       setOrders(previousOrders); // Rollback on error
       alert(err?.response?.data?.message || 'Hủy đơn hàng thất bại.');
@@ -130,6 +132,7 @@ function OrdersPage() {
     setOrders((prev) => prev.filter((o) => o.id !== order.id));
     try {
       await deleteOrder(order.id);
+      await fetchOrders();
     } catch (err: any) {
       setOrders(previousOrders); // Rollback on error
       alert(err?.response?.data?.message || 'Xóa đơn hàng thất bại.');
@@ -137,7 +140,7 @@ function OrdersPage() {
   };
 
   const renderStatusBadge = (status: OrderStatus) => {
-    switch (status) {
+    switch (Number(status)) {
       case 1:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse">
@@ -274,7 +277,7 @@ function OrdersPage() {
 
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {order.status === 1 && (
+                        {Number(order.status) === 1 && (
                           <>
                             <button
                               onClick={() => {
