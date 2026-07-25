@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import type { Order, OrderStatus } from '@/types';
+import { getOrderItemList } from '@/types';
 
 interface ExtendedOrder extends Order {
   customer_name_snapshot?: string;
@@ -45,6 +46,8 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   onOpenCancel,
 }) => {
   if (!isOpen || !order) return null;
+
+  const itemList = getOrderItemList(order.items);
 
   const renderStatusBadge = (status: OrderStatus) => {
     switch (Number(status)) {
@@ -187,7 +190,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
               <Package size={14} className="text-amber-500" /> Danh sách sản phẩm trong đơn (
-              {order.items?.length || 0})
+              {itemList.length})
             </h4>
 
             <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
@@ -201,16 +204,21 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
-                  {order.items && order.items.length > 0 ? (
-                    order.items.map((item, idx) => (
+                  {itemList.length > 0 ? (
+                    itemList.map((item, idx) => (
                       <tr
                         key={item.id || idx}
                         className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
                       >
                         <td className="px-4 py-3">
                           <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                            {item.product_name}
+                            {item.product_name_snapshot || item.product_name}
                           </p>
+                          {item.price_override_reason && (
+                            <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                              Lý do sửa giá: {item.price_override_reason}
+                            </p>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-right font-mono">
                           {Number(item.unit_price).toLocaleString('vi-VN')} đ
@@ -218,7 +226,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                         <td className="px-4 py-3 text-center font-bold">{item.quantity}</td>
                         <td className="px-4 py-3 text-right font-bold font-mono text-slate-900 dark:text-slate-100">
                           {Number(
-                            item.subtotal || Number(item.unit_price) * item.quantity
+                            item.total_item_price || item.subtotal || Number(item.unit_price) * item.quantity
                           ).toLocaleString('vi-VN')}{' '}
                           đ
                         </td>
