@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const createEnv = () => {
   const envSchema = z.object({
-    API_URL: z.string().default('http://localhost:8000/api'),
+    API_URL: z.string().default('http://api.phongvan_be.test/v1'),
     SOKETI_HOST: z.string().default('127.0.0.1'),
     SOKETI_PORT: z.string().default('6001'),
     SOKETI_APP_KEY: z.string().default('app-key-phongvan'),
