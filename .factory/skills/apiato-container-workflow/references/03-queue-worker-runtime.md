@@ -6,12 +6,12 @@ Module này `(optional)` nhưng trở thành bắt buộc khi feature có backgr
 
 Phân loại trước:
 
-| Loại | Chạy ở đâu |
-| --- | --- |
-| Core write phải nhất quán ngay | Action/Task trong transaction |
-| Side effect có thể eventual consistency | Queued Listener/Job sau commit |
-| External I/O, mail, push, webhook, thumbnail | Queue riêng phù hợp |
-| Recurrence/purge/import định kỳ | Scheduler dispatch Job |
+| Loại                                         | Chạy ở đâu                     |
+| -------------------------------------------- | ------------------------------ |
+| Core write phải nhất quán ngay               | Action/Task trong transaction  |
+| Side effect có thể eventual consistency      | Queued Listener/Job sau commit |
+| External I/O, mail, push, webhook, thumbnail | Queue riêng phù hợp            |
+| Recurrence/purge/import định kỳ              | Scheduler dispatch Job         |
 
 Không đưa core write bắt buộc vào queued Listener sau khi endpoint đã trả success.
 

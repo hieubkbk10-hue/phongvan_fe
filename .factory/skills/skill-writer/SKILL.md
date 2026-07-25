@@ -20,14 +20,14 @@ Build Factory Droid skills that future agents can discover and follow without gu
 
 ## When to create or update
 
-| Situation | Decision |
-| --- | --- |
-| Repeated workflow agents keep rediscovering | Create or improve a skill |
-| User preference corrects agent behavior more than once | Capture it |
-| Tool sequence has order, fallback, or safety traps | Capture it |
+| Situation                                                       | Decision                                              |
+| --------------------------------------------------------------- | ----------------------------------------------------- |
+| Repeated workflow agents keep rediscovering                     | Create or improve a skill                             |
+| User preference corrects agent behavior more than once          | Capture it                                            |
+| Tool sequence has order, fallback, or safety traps              | Capture it                                            |
 | Single project convention already fits `AGENTS.md` or standards | Put it there unless agents must load it as a workflow |
-| Generic public docs already explain it well | Do not duplicate |
-| One-off session story with no reusable pattern | Do not create a skill |
+| Generic public docs already explain it well                     | Do not duplicate                                      |
+| One-off session story with no reusable pattern                  | Do not create a skill                                 |
 
 ## Workflow
 
@@ -53,12 +53,12 @@ description: |
 
 ## Frontmatter rules
 
-| Field | Rule |
-| --- | --- |
-| `name` | Lowercase letters, numbers, and hyphens. Match the folder unless preserving legacy compatibility. |
-| `version` | Required. Use semantic versioning. |
-| `description` | Start with "Use when...". Describe trigger conditions, not the whole workflow. |
-| `allowed-tools` | Optional. Use only when tool restriction is part of the skill contract. |
+| Field           | Rule                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| `name`          | Lowercase letters, numbers, and hyphens. Match the folder unless preserving legacy compatibility. |
+| `version`       | Required. Use semantic versioning.                                                                |
+| `description`   | Start with "Use when...". Describe trigger conditions, not the whole workflow.                    |
+| `allowed-tools` | Optional. Use only when tool restriction is part of the skill contract.                           |
 
 Good:
 
@@ -81,20 +81,25 @@ description: Helps with docs and best practices.
 One short purpose paragraph.
 
 ## Ground rules
+
 - Hard constraints.
 
 ## When to use
+
 - Concrete triggers, if frontmatter needs more detail.
 
 ## Workflow
+
 1. First action.
 2. Main route or checklist.
 3. Validation.
 
 ## Output
+
 - Exact response shape when relevant.
 
 ## Common mistakes
+
 - What agents tend to get wrong.
 ```
 

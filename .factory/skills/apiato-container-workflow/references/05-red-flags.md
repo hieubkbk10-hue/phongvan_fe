@@ -25,28 +25,28 @@
 
 ## Rationalization và correction
 
-| Rationalization | Correction |
-| --- | --- |
-| “User chỉ nói Media nên không được đụng Customer/Product.” | Mở rộng thành A' với dependency tối thiểu thật sự cần để output đúng. |
-| “Tạo Product/Customer rỗng trước, business làm sau.” | Nếu feature cần field/invariant, dependency rỗng là code giả và không hoàn tất A'. |
-| “Khai báo relation sẵn, sau này tạo Model.” | Relation chỉ được nối khi cả hai đầu đã tồn tại và được test. |
-| “Job có `ShouldQueue` là xong.” | Queue cần payload, idempotency, retry, failure, worker, runtime và monitoring. |
-| “`afterCommit()` luôn an toàn.” | Với `sync`, không có async/delay thật; phải kiểm tra backend runtime. |
-| “Event là nơi tiện để gọi HTTP.” | Event là data carrier; external I/O chạy queued sau commit. |
-| “Listener async cũng ghi core data được.” | Core writes cần immediate consistency ở transaction boundary. |
-| “SoftDelete chỉ cần trait và column.” | Phải có delete cause, restore, purge, cascade và cleanup policy nếu relevant. |
-| “Request đã `exists` nên có quyền.” | Existence không thay ownership/domain permission. |
-| “Transformer query thêm một chút không sao.” | Collection sẽ N+1; chuẩn bị query shape ở Task/Repository. |
-| “Prompt ngắn để agent tự hiểu context.” | Prompt phải self-contained vì agent khác không có session context. |
-| “Workflow tổng càng dài càng tốt.” | Workflow master đầy đủ, output cho user phải lọc theo trigger và A'. |
-| “User không yêu cầu file nên trả hết trong chat.” | Workflow topo phải tạo artifact trong `Downloads\Current Task`; chat chỉ trả summary và path. |
-| “Dependency order dạng text là đủ.” | Artifact phải có Mermaid diagram cho forward flow và complete/abort lifecycle. |
-| “Commit message để agent tự đặt.” | Mỗi task phải chốt exact Conventional Commit message và exact stage scope. |
-| “Rollback chỉ cần revert commit.” | Revert code không tự rollback migration, data, file, queue hoặc runtime. |
-| “Xóa feature branch local luôn an toàn.” | Branch chưa merge có thể mất commit; force-delete cần xác nhận abort rõ ràng. |
-| “Merge xong thì push luôn cho tiện.” | Workflow mặc định local-only; không push nếu user không yêu cầu riêng. |
-| “Migration đơn giản nên không cần MySQL review.” | Có schema/index/query/locking trigger là phải dùng `mysql-optimization`; độ ngắn của migration không loại bỏ rủi ro index/data type. |
-| “Có index là đủ, không cần EXPLAIN.” | Index không chứng minh optimizer sẽ dùng; task query đáng kể phải có query-plan expectation và validation. |
+| Rationalization                                            | Correction                                                                                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| “User chỉ nói Media nên không được đụng Customer/Product.” | Mở rộng thành A' với dependency tối thiểu thật sự cần để output đúng.                                                                |
+| “Tạo Product/Customer rỗng trước, business làm sau.”       | Nếu feature cần field/invariant, dependency rỗng là code giả và không hoàn tất A'.                                                   |
+| “Khai báo relation sẵn, sau này tạo Model.”                | Relation chỉ được nối khi cả hai đầu đã tồn tại và được test.                                                                        |
+| “Job có `ShouldQueue` là xong.”                            | Queue cần payload, idempotency, retry, failure, worker, runtime và monitoring.                                                       |
+| “`afterCommit()` luôn an toàn.”                            | Với `sync`, không có async/delay thật; phải kiểm tra backend runtime.                                                                |
+| “Event là nơi tiện để gọi HTTP.”                           | Event là data carrier; external I/O chạy queued sau commit.                                                                          |
+| “Listener async cũng ghi core data được.”                  | Core writes cần immediate consistency ở transaction boundary.                                                                        |
+| “SoftDelete chỉ cần trait và column.”                      | Phải có delete cause, restore, purge, cascade và cleanup policy nếu relevant.                                                        |
+| “Request đã `exists` nên có quyền.”                        | Existence không thay ownership/domain permission.                                                                                    |
+| “Transformer query thêm một chút không sao.”               | Collection sẽ N+1; chuẩn bị query shape ở Task/Repository.                                                                           |
+| “Prompt ngắn để agent tự hiểu context.”                    | Prompt phải self-contained vì agent khác không có session context.                                                                   |
+| “Workflow tổng càng dài càng tốt.”                         | Workflow master đầy đủ, output cho user phải lọc theo trigger và A'.                                                                 |
+| “User không yêu cầu file nên trả hết trong chat.”          | Workflow topo phải tạo artifact trong `Downloads\Current Task`; chat chỉ trả summary và path.                                        |
+| “Dependency order dạng text là đủ.”                        | Artifact phải có Mermaid diagram cho forward flow và complete/abort lifecycle.                                                       |
+| “Commit message để agent tự đặt.”                          | Mỗi task phải chốt exact Conventional Commit message và exact stage scope.                                                           |
+| “Rollback chỉ cần revert commit.”                          | Revert code không tự rollback migration, data, file, queue hoặc runtime.                                                             |
+| “Xóa feature branch local luôn an toàn.”                   | Branch chưa merge có thể mất commit; force-delete cần xác nhận abort rõ ràng.                                                        |
+| “Merge xong thì push luôn cho tiện.”                       | Workflow mặc định local-only; không push nếu user không yêu cầu riêng.                                                               |
+| “Migration đơn giản nên không cần MySQL review.”           | Có schema/index/query/locking trigger là phải dùng `mysql-optimization`; độ ngắn của migration không loại bỏ rủi ro index/data type. |
+| “Có index là đủ, không cần EXPLAIN.”                       | Index không chứng minh optimizer sẽ dùng; task query đáng kể phải có query-plan expectation và validation.                           |
 
 ## Baseline failures observed
 

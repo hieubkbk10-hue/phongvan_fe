@@ -130,13 +130,13 @@ Ghi `base_commit` từ `git rev-parse HEAD` vào metadata artifact. Không tạo
 
 Mỗi task có:
 
-| Field | Nội dung |
-| --- | --- |
-| Stage scope | Exact file allowlist thuộc task |
-| Validation | Commands phải pass trước stage/commit |
-| Message | Exact Conventional Commit message |
+| Field         | Nội dung                                    |
+| ------------- | ------------------------------------------- |
+| Stage scope   | Exact file allowlist thuộc task             |
+| Validation    | Commands phải pass trước stage/commit       |
+| Message       | Exact Conventional Commit message           |
 | Secret review | `git diff --cached` và config/env/log check |
-| Remote | `No push` |
+| Remote        | `No push`                                   |
 
 Ví dụ:
 
@@ -155,9 +155,9 @@ Không amend/squash task trước. Mỗi implementation task có thay đổi fil
 
 Artifact phải duy trì rollback manifest:
 
-| Task | Depends on | Commit hash | Migration paths | Rollback command | Status |
-| --- | --- | --- | --- | --- | --- |
-| 1 | 0 | `<filled after commit>` | `<exact paths>` | `<exact command>` | pending/done/rolled-back |
+| Task | Depends on | Commit hash             | Migration paths | Rollback command  | Status                   |
+| ---- | ---------- | ----------------------- | --------------- | ----------------- | ------------------------ |
+| 1    | 0          | `<filled after commit>` | `<exact paths>` | `<exact command>` | pending/done/rolled-back |
 
 `Depends on` phải phản ánh dependency edges thật, để rollback graph phân nhánh không phụ thuộc duy nhất vào số task.
 

@@ -16,12 +16,12 @@ Ví dụ cực gọn:
 <input placeholder="Tìm tên" />
 <button>Thêm</button>
 <table>
-    <tr>
-        <th>Tên</th>
-        <th>Giá</th>
-        <th>Trạng thái</th>
-        <th>Thao tác</th>
-    </tr>
+  <tr>
+    <th>Tên</th>
+    <th>Giá</th>
+    <th>Trạng thái</th>
+    <th>Thao tác</th>
+  </tr>
 </table>
 ```
 
@@ -44,7 +44,6 @@ Ví dụ cực gọn:
 - Apiato: `$access`, `$decode`, `$urlParameters`.
 - Hash id decode ở Request.
 - Không tin input client.
-
 
 ## 4. Porto Layer
 
@@ -131,5 +130,3 @@ Ví dụ cực gọn:
 - Frontend type và state đủ.
 - Test/validator đã chạy.
 - Không file rác, không secret, không ngoài scope.
-
-

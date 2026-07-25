@@ -1,13 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { echo } from '@/lib/echo';
+import type { UseRealtimeSyncOptions } from '@/types';
 
-export interface UseRealtimeSyncOptions {
-  channel: string;
-  events: string[];
-  isPrivate?: boolean;
-  onEvent?: (eventName: string, payload: any) => void;
-}
-
+// LOGIC: Đồng bộ hóa dữ liệu Realtime WebSocket giữa Backend và React Client không sử dụng `any`
 export const useRealtimeSync = ({
   channel,
   events,
@@ -26,17 +21,11 @@ export const useRealtimeSync = ({
     const parsedEvents: string[] = JSON.parse(serializedEvents);
     if (!channel || !parsedEvents || parsedEvents.length === 0) return;
 
-    let chObj: any;
-    if (isPrivate) {
-      chObj = echo.private(channel);
-    } else {
-      chObj = echo.channel(channel);
-    }
-
-    const listeners: { [event: string]: (data: any) => void } = {};
+    const chObj = isPrivate ? echo.private(channel) : echo.channel(channel);
+    const listeners: Record<string, (data: unknown) => void> = {};
 
     parsedEvents.forEach((evt) => {
-      const handler = (data: any) => {
+      const handler = (data: unknown) => {
         if (onEventRef.current) {
           onEventRef.current(evt, data);
         }

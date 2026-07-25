@@ -170,15 +170,15 @@ Không chấp nhận:
 
 ## 5.12) SoftDelete decision matrix
 
-| Case | Nên làm |
-| --- | --- |
-| Business root cần restore, recycle bin, purge sau X ngày | SoftDelete |
-| Parent delete phải kéo child rồi restore đúng nhóm | SoftDelete + `deleted_by_*` |
-| Pivot membership có dữ liệu user/team cần giữ | `active=false` hoặc soft delete nếu có restore rõ |
-| Like/viewer/temp pivot không có lifecycle riêng | Hard delete/cascade |
-| Log/history/audit | Thường không soft delete, vì bản thân là lịch sử |
-| File/media phụ thuộc parent | Delete khi force delete, soft delete parent trước |
-| Legal/privacy yêu cầu xóa vĩnh viễn | Force delete/anonymize theo rule rõ |
+| Case                                                     | Nên làm                                           |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| Business root cần restore, recycle bin, purge sau X ngày | SoftDelete                                        |
+| Parent delete phải kéo child rồi restore đúng nhóm       | SoftDelete + `deleted_by_*`                       |
+| Pivot membership có dữ liệu user/team cần giữ            | `active=false` hoặc soft delete nếu có restore rõ |
+| Like/viewer/temp pivot không có lifecycle riêng          | Hard delete/cascade                               |
+| Log/history/audit                                        | Thường không soft delete, vì bản thân là lịch sử  |
+| File/media phụ thuộc parent                              | Delete khi force delete, soft delete parent trước |
+| Legal/privacy yêu cầu xóa vĩnh viễn                      | Force delete/anonymize theo rule rõ               |
 
 Repo evidence:
 

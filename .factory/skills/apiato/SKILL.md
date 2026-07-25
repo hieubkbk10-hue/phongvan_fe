@@ -38,31 +38,31 @@ When not to use:
 
 Apiato 11.x docs are the baseline. This repo can be stricter. If they conflict, state the distinction:
 
-| Topic | Apiato 11.x docs | Repo/company policy |
-| --- | --- | --- |
-| Controller shape | API Controller extends `App\Ship\Parents\Controllers\ApiController`; docs show `UI/API/Controllers/Controller.php` with methods | This repo may use one controller file per endpoint if existing container does. Match nearby code first |
-| Controller responsibility | Controller should only call Action `run()` and pass the Request object | Keep controller thin, no query or orchestration |
-| Transaction | `transactionalRun(...$arguments)` wraps Action `run()` and docs say it is commonly called from Controller | Multi-write workflow consistency must be explicit. Use `transactionalRun()` from Controller when fitting docs, or `DB::transaction()`/transactional orchestration at Action level when repo pattern already does that |
-| Events | Events may fire from Actions or Tasks; docs recommend choosing one place and say Tasks are recommended | For multi-write workflows, dispatch only after successful state change, and use after-commit semantics for queued/external side effects |
-| Validators | Apiato docs do not define this repo's validators | Follow `AGENTS.md`: `composer validate --strict`, `vendor/bin/php-cs-fixer fix --config=php_cs.dist.php --dry-run --diff`, `vendor/bin/psalm --config=psalm.dist.xml`, `vendor/bin/phpunit` as relevant |
+| Topic                     | Apiato 11.x docs                                                                                                                | Repo/company policy                                                                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Controller shape          | API Controller extends `App\Ship\Parents\Controllers\ApiController`; docs show `UI/API/Controllers/Controller.php` with methods | This repo may use one controller file per endpoint if existing container does. Match nearby code first                                                                                                                |
+| Controller responsibility | Controller should only call Action `run()` and pass the Request object                                                          | Keep controller thin, no query or orchestration                                                                                                                                                                       |
+| Transaction               | `transactionalRun(...$arguments)` wraps Action `run()` and docs say it is commonly called from Controller                       | Multi-write workflow consistency must be explicit. Use `transactionalRun()` from Controller when fitting docs, or `DB::transaction()`/transactional orchestration at Action level when repo pattern already does that |
+| Events                    | Events may fire from Actions or Tasks; docs recommend choosing one place and say Tasks are recommended                          | For multi-write workflows, dispatch only after successful state change, and use after-commit semantics for queued/external side effects                                                                               |
+| Validators                | Apiato docs do not define this repo's validators                                                                                | Follow `AGENTS.md`: `composer validate --strict`, `vendor/bin/php-cs-fixer fix --config=php_cs.dist.php --dry-run --diff`, `vendor/bin/psalm --config=psalm.dist.xml`, `vendor/bin/phpunit` as relevant               |
 
 ## Quick Reference
 
-| Component | Location | Extends | Primary rule |
-| --- | --- | --- | --- |
-| Route | `UI/API/Routes` | n/a | File name `{ActionName}.v{n}.{public|private}.php`; private routes use auth middleware |
-| Controller | `UI/API/Controllers` | `App\Ship\Parents\Controllers\ApiController` | Accept Request, call Action, return response/Transformer |
-| Request | `UI/API/Requests` | `App\Ship\Parents\Requests\Request` | `rules(): array`, `authorize(): bool`, `$access`, `$decode`, `$urlParameters` |
-| Action | `Actions` | `App\Ship\Parents\Actions\Action` | Top-level use case orchestration |
-| SubAction | `Actions` | `App\Ship\Parents\Actions\SubAction` | Reusable sub-use-case orchestration |
-| Task | `Tasks` | `App\Ship\Parents\Tasks\Task` | One small reusable job, no Request object |
-| Repository | `Data/Repositories` | `App\Ship\Parents\Repositories\Repository` | Data access and query parameter surface |
-| Model | `Models` | parent model used by repo | Table representation, fillable/casts/relationships |
-| Transformer | `UI/API/Transformers` | `App\Ship\Parents\Transformers\Transformer` | Public API shape, hashed IDs, includes |
-| Event | `Events` or `Ship/Events` | `App\Ship\Parents\Events\Event` | Data carrier for decoupled side effects |
-| Listener | `Listeners` | `App\Ship\Parents\Listeners\Listener` | One side effect, queue if slow/external |
-| Test | `Tests/Unit`, `UI/API/Tests/Functional` | container TestCase | Unit for Action/Task, Functional for Route |
-| Authentication | Authentication Container + Ship auth config | Passport/OAuth2 | Keep client secrets server-side; test issue, refresh, revoke, guards, scopes and expiration |
+| Component      | Location                                    | Extends                                      | Primary rule                                                                                |
+| -------------- | ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Route          | `UI/API/Routes`                             | n/a                                          | File name `{ActionName}.v{n}.{public                                                        | private}.php`; private routes use auth middleware |
+| Controller     | `UI/API/Controllers`                        | `App\Ship\Parents\Controllers\ApiController` | Accept Request, call Action, return response/Transformer                                    |
+| Request        | `UI/API/Requests`                           | `App\Ship\Parents\Requests\Request`          | `rules(): array`, `authorize(): bool`, `$access`, `$decode`, `$urlParameters`               |
+| Action         | `Actions`                                   | `App\Ship\Parents\Actions\Action`            | Top-level use case orchestration                                                            |
+| SubAction      | `Actions`                                   | `App\Ship\Parents\Actions\SubAction`         | Reusable sub-use-case orchestration                                                         |
+| Task           | `Tasks`                                     | `App\Ship\Parents\Tasks\Task`                | One small reusable job, no Request object                                                   |
+| Repository     | `Data/Repositories`                         | `App\Ship\Parents\Repositories\Repository`   | Data access and query parameter surface                                                     |
+| Model          | `Models`                                    | parent model used by repo                    | Table representation, fillable/casts/relationships                                          |
+| Transformer    | `UI/API/Transformers`                       | `App\Ship\Parents\Transformers\Transformer`  | Public API shape, hashed IDs, includes                                                      |
+| Event          | `Events` or `Ship/Events`                   | `App\Ship\Parents\Events\Event`              | Data carrier for decoupled side effects                                                     |
+| Listener       | `Listeners`                                 | `App\Ship\Parents\Listeners\Listener`        | One side effect, queue if slow/external                                                     |
+| Test           | `Tests/Unit`, `UI/API/Tests/Functional`     | container TestCase                           | Unit for Action/Task, Functional for Route                                                  |
+| Authentication | Authentication Container + Ship auth config | Passport/OAuth2                              | Keep client secrets server-side; test issue, refresh, revoke, guards, scopes and expiration |
 
 Detailed authentication reference: [references/authentication-passport.md](references/authentication-passport.md).
 
@@ -474,22 +474,22 @@ Use `php artisan` and `php artisan apiato:generate:<name> --help` before relying
 
 ## Common Mistakes
 
-| Mistake | Correction |
-| --- | --- |
-| Creating one Container per table | Create Containers by business domain/context |
-| Treating docs examples as this repo's exact structure | Match nearby repo patterns after checking Apiato 11.x baseline |
-| Writing queries in Controller or Action | Put data access in Task/Repository |
-| Passing Request into Task | Pass scalar/value/data array to Task |
-| Making Task call many Tasks | Use SubAction for sub-use-case orchestration |
-| Hiding multi-write transaction in reusable Task | Use Action/`transactionalRun()` for workflow consistency |
-| Copying RequestCriteria examples onto an undefined `$this->repository` | Inject Repository in Task, apply `addRequestCriteria()` before `run()` |
-| Returning raw numeric IDs | Return `getHashedKey()` and decode inputs in Request |
-| Leaving private `authorize()` as `true` | Use `$access` and `$this->check(['hasAccess'])` unless intentionally open to authenticated users |
-| Missing `max` on strings | Cap create/update strings to database column length |
-| Exposing sensitive fields in Transformer or `filter` | Keep Transformer public and safe |
-| Letting list APIs return unbounded results | Paginate or enforce safe max `limit` |
-| Dispatching external side effects before transaction commit | Dispatch after successful state change, queue with after-commit when needed |
-| Running Pint by habit in this repo | Use repo validators from `AGENTS.md`, especially `php-cs-fixer` |
+| Mistake                                                                | Correction                                                                                       |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Creating one Container per table                                       | Create Containers by business domain/context                                                     |
+| Treating docs examples as this repo's exact structure                  | Match nearby repo patterns after checking Apiato 11.x baseline                                   |
+| Writing queries in Controller or Action                                | Put data access in Task/Repository                                                               |
+| Passing Request into Task                                              | Pass scalar/value/data array to Task                                                             |
+| Making Task call many Tasks                                            | Use SubAction for sub-use-case orchestration                                                     |
+| Hiding multi-write transaction in reusable Task                        | Use Action/`transactionalRun()` for workflow consistency                                         |
+| Copying RequestCriteria examples onto an undefined `$this->repository` | Inject Repository in Task, apply `addRequestCriteria()` before `run()`                           |
+| Returning raw numeric IDs                                              | Return `getHashedKey()` and decode inputs in Request                                             |
+| Leaving private `authorize()` as `true`                                | Use `$access` and `$this->check(['hasAccess'])` unless intentionally open to authenticated users |
+| Missing `max` on strings                                               | Cap create/update strings to database column length                                              |
+| Exposing sensitive fields in Transformer or `filter`                   | Keep Transformer public and safe                                                                 |
+| Letting list APIs return unbounded results                             | Paginate or enforce safe max `limit`                                                             |
+| Dispatching external side effects before transaction commit            | Dispatch after successful state change, queue with after-commit when needed                      |
+| Running Pint by habit in this repo                                     | Use repo validators from `AGENTS.md`, especially `php-cs-fixer`                                  |
 
 ## Red Flags
 

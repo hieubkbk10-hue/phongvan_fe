@@ -1,8 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { Users, Plus, Search, Edit3, Trash2, RotateCcw, Phone, MapPin, Mail, Loader2, UserCheck, UserX } from 'lucide-react';
-import type { Customer, CreateCustomerInput } from '@/features/customers/types';
-import { getCustomers, createCustomer, updateCustomer, deleteCustomer, restoreCustomer } from '@/features/customers/api/customersApi';
+import {
+  Users,
+  Plus,
+  Search,
+  Edit3,
+  Trash2,
+  RotateCcw,
+  Phone,
+  MapPin,
+  Mail,
+  Loader2,
+  UserCheck,
+  UserX,
+} from 'lucide-react';
+import { AxiosError } from 'axios';
+import type { Customer, CreateCustomerInput, ApiResponse } from '@/types';
+import {
+  getCustomers,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+  restoreCustomer,
+} from '@/features/customers/api/customersApi';
 import { CustomerModal } from '@/features/customers/components/CustomerModal';
 import { useRealtimeSync } from '@/features/real-time/hooks/useRealtimeSync';
 
@@ -12,19 +32,21 @@ export const Route = createFileRoute('/admin/customers')({
 
 function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  // UI: Quản lý trạng thái loading và dialog theo quy chuẩn is[Feature][State]
+  const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [trashedTab, setTrashedTab] = useState<'active' | 'trashed'>('active');
 
-  const [modalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // LOGIC: Tải danh sách khách hàng từ API có phân trang và lọc xóa mềm
   const fetchCustomers = useCallback(async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       const result = await getCustomers({
         page,
         limit: 10,
@@ -37,10 +59,10 @@ function CustomersPage() {
       } else {
         setTotalPages(1);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Lỗi tải danh sách khách hàng:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [page, search, trashedTab]);
 
@@ -48,7 +70,7 @@ function CustomersPage() {
     fetchCustomers();
   }, [fetchCustomers]);
 
-  // Soketi WebSocket Real-time listener for Customers
+  // LOGIC: Soketi WebSocket Real-time listener tự động làm mới danh sách khi có sự kiện thay đổi
   useRealtimeSync({
     channel: 'customers',
     events: ['CustomerCreated', 'CustomerUpdated', 'CustomerDeleted', 'CustomerRestored'],
@@ -57,21 +79,19 @@ function CustomersPage() {
     },
   });
 
-  // Optimistic UI for Create / Update
+  // LOGIC: Optimistic UI cập nhật tức thì 0ms cho thao tác Tạo mới/Cập nhật
   const handleCreateOrUpdate = async (data: CreateCustomerInput) => {
     const previousCustomers = [...customers];
     try {
-      setSubmitting(true);
+      setIsSubmitting(true);
       if (editingCustomer) {
-        // Optimistic Update (0ms)
         setCustomers((prev) =>
           prev.map((c) => (c.id === editingCustomer.id ? { ...c, ...data } : c))
         );
-        setModalOpen(false);
+        setIsModalOpen(false);
         const updated = await updateCustomer({ id: editingCustomer.id, ...data });
         setCustomers((prev) => prev.map((c) => (c.id === editingCustomer.id ? updated : c)));
       } else {
-        // Optimistic Create (0ms)
         const tempId = 'temp-' + Date.now();
         const optimisticCust: Customer = {
           id: tempId,
@@ -81,44 +101,57 @@ function CustomersPage() {
           email: data.email || null,
         };
         setCustomers((prev) => [optimisticCust, ...prev]);
-        setModalOpen(false);
+        setIsModalOpen(false);
         const created = await createCustomer(data);
         setCustomers((prev) => prev.map((c) => (c.id === tempId ? created : c)));
       }
       setEditingCustomer(null);
-    } catch (error: any) {
-      setCustomers(previousCustomers); // Rollback on error
-      alert(error?.response?.data?.message || 'Thao tác thất bại. Vui lòng kiểm tra lại số điện thoại trùng.');
+    } catch (error: unknown) {
+      setCustomers(previousCustomers); // LOGIC: Rollback giao diện khi API thất bại
+      let message = 'Thao tác thất bại. Vui lòng kiểm tra lại thông tin.';
+      if (error instanceof AxiosError) {
+        const res = error.response?.data as ApiResponse | undefined;
+        if (res?.message) message = res.message;
+      }
+      alert(message);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Optimistic UI for Soft Delete
+  // LOGIC: Optimistic UI cho xóa mềm khách hàng
   const handleSoftDelete = async (id: string, name: string) => {
     if (!confirm(`Bạn có chắc chắn muốn xóa mềm khách hàng "${name}"?`)) return;
     const previousCustomers = [...customers];
-    // Optimistic Delete (0ms)
     setCustomers((prev) => prev.filter((c) => c.id !== id));
     try {
       await deleteCustomer(id);
-    } catch (error: any) {
-      setCustomers(previousCustomers); // Rollback on error
-      alert(error?.response?.data?.message || 'Xóa khách hàng thất bại.');
+    } catch (error: unknown) {
+      setCustomers(previousCustomers);
+      let message = 'Xóa khách hàng thất bại.';
+      if (error instanceof AxiosError) {
+        const res = error.response?.data as ApiResponse | undefined;
+        if (res?.message) message = res.message;
+      }
+      alert(message);
     }
   };
 
-  // Optimistic UI for Restore
+  // LOGIC: Optimistic UI cho khôi phục khách hàng đã xóa mềm
   const handleRestore = async (id: string, name: string) => {
     if (!confirm(`Bạn có muốn khôi phục khách hàng "${name}"?`)) return;
     const previousCustomers = [...customers];
-    // Optimistic Restore (0ms) - remove from trashed list
     setCustomers((prev) => prev.filter((c) => c.id !== id));
     try {
       await restoreCustomer(id);
-    } catch (error: any) {
-      setCustomers(previousCustomers); // Rollback on error
-      alert(error?.response?.data?.message || 'Khôi phục khách hàng thất bại.');
+    } catch (error: unknown) {
+      setCustomers(previousCustomers);
+      let message = 'Khôi phục khách hàng thất bại.';
+      if (error instanceof AxiosError) {
+        const res = error.response?.data as ApiResponse | undefined;
+        if (res?.message) message = res.message;
+      }
+      alert(message);
     }
   };
 
@@ -139,7 +172,7 @@ function CustomersPage() {
         <button
           onClick={() => {
             setEditingCustomer(null);
-            setModalOpen(true);
+            setIsModalOpen(true);
           }}
           className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
         >
@@ -150,7 +183,6 @@ function CustomersPage() {
 
       {/* Tabs & Search Header */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs space-y-4">
-        {/* Active vs Trashed Tabs */}
         <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
           <button
             onClick={() => {
@@ -183,7 +215,6 @@ function CustomersPage() {
           </button>
         </div>
 
-        {/* Search */}
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -199,9 +230,9 @@ function CustomersPage() {
         </div>
       </div>
 
-      {/* Customers Table */}
+      {/* Customers Table - UI: Sử dụng table-layout: fixed và colgroup theo quy chuẩn 3.1 */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
             <Loader2 size={32} className="animate-spin text-emerald-600" />
             <p className="text-sm font-medium">Đang tải danh sách khách hàng...</p>
@@ -209,14 +240,24 @@ function CustomersPage() {
         ) : customers.length === 0 ? (
           <div className="py-20 text-center text-slate-400">
             <Users size={48} className="mx-auto opacity-30 mb-2" />
-            <p className="text-base font-semibold text-slate-700 dark:text-slate-300">Không tìm thấy khách hàng nào</p>
+            <p className="text-base font-semibold text-slate-700 dark:text-slate-300">
+              Không tìm thấy khách hàng nào
+            </p>
             <p className="text-xs text-slate-500 mt-1">
-              {trashedTab === 'trashed' ? 'Không có khách hàng nào trong thùng rác' : 'Thêm khách hàng mới để bắt đầu'}
+              {trashedTab === 'trashed'
+                ? 'Không có khách hàng nào trong thùng rác'
+                : 'Thêm khách hàng mới để bắt đầu'}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm table-fixed">
+              <colgroup>
+                <col className="w-[30%]" />
+                <col className="w-[25%]" />
+                <col className="w-[30%]" />
+                <col className="w-[15%]" />
+              </colgroup>
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
                 <tr>
                   <th className="px-6 py-3.5">Khách hàng</th>
@@ -227,16 +268,21 @@ function CustomersPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                 {customers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <tr
+                    key={customer.id}
+                    className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center text-sm shrink-0">
                           {customer.name[0]?.toUpperCase() || 'C'}
                         </div>
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-slate-100">{customer.name}</p>
+                        <div className="truncate">
+                          <p className="font-bold text-slate-900 dark:text-slate-100 truncate">
+                            {customer.name}
+                          </p>
                           {customer.email && (
-                            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5 truncate">
                               <Mail size={12} /> {customer.email}
                             </p>
                           )}
@@ -252,9 +298,9 @@ function CustomersPage() {
                     </td>
 
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
-                      <p className="truncate max-w-xs flex items-center gap-1.5 text-xs">
+                      <p className="truncate flex items-center gap-1.5 text-xs">
                         <MapPin size={14} className="text-slate-400 shrink-0" />
-                        <span>{customer.address || 'Chưa cập nhật'}</span>
+                        <span className="truncate">{customer.address || 'Chưa cập nhật'}</span>
                       </p>
                     </td>
 
@@ -265,7 +311,7 @@ function CustomersPage() {
                             <button
                               onClick={() => {
                                 setEditingCustomer(customer);
-                                setModalOpen(true);
+                                setIsModalOpen(true);
                               }}
                               className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
                               title="Chỉnh sửa"
@@ -328,14 +374,14 @@ function CustomersPage() {
 
       {/* Customer Form Modal */}
       <CustomerModal
-        isOpen={modalOpen}
+        isOpen={isModalOpen}
         onClose={() => {
-          setModalOpen(false);
+          setIsModalOpen(false);
           setEditingCustomer(null);
         }}
         onSubmit={handleCreateOrUpdate}
         customer={editingCustomer}
-        isLoading={submitting}
+        isLoading={isSubmitting}
       />
     </div>
   );

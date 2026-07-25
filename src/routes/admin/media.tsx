@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Image as ImageIcon, Package, Star, Search, Loader2 } from 'lucide-react';
 import { getProducts } from '@/features/products/api/productsApi';
-import { getMediaList } from '@/features/products/types';
-import type { Product } from '@/features/products/types';
+import { getMediaList } from '@/types';
+import type { Product } from '@/types';
 
 export const Route = createFileRoute('/admin/media')({
   component: MediaLibraryPage,
@@ -11,19 +11,21 @@ export const Route = createFileRoute('/admin/media')({
 
 function MediaLibraryPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  // UI: Quản lý biến state loading theo quy chuẩn is[Feature][State]
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  // LOGIC: Tải toàn bộ danh sách sản phẩm và tổng hợp thư viện ảnh media
   useEffect(() => {
     const loadMedia = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         const res = await getProducts({ limit: 50 });
-        setProducts(res.data);
-      } catch (err) {
+        setProducts(res.data || []);
+      } catch (err: unknown) {
         console.error('Lỗi tải media:', err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     loadMedia();
@@ -72,7 +74,7 @@ function MediaLibraryPage() {
 
       {/* Media Grid */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs">
-        {loading ? (
+        {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
             <Loader2 size={32} className="animate-spin text-indigo-600" />
             <p className="text-sm font-medium">Đang tải thư viện media...</p>
@@ -80,8 +82,12 @@ function MediaLibraryPage() {
         ) : filteredMedia.length === 0 ? (
           <div className="py-20 text-center text-slate-400">
             <ImageIcon size={48} className="mx-auto opacity-30 mb-2" />
-            <p className="text-base font-semibold text-slate-700 dark:text-slate-300">Chưa có hình ảnh nào</p>
-            <p className="text-xs text-slate-500 mt-1">Hãy upload hình ảnh trực tiếp trong mục Quản lý sản phẩm</p>
+            <p className="text-base font-semibold text-slate-700 dark:text-slate-300">
+              Chưa có hình ảnh nào
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Hãy upload hình ảnh trực tiếp trong mục Quản lý sản phẩm
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -90,11 +96,7 @@ function MediaLibraryPage() {
                 key={media.id}
                 className="group relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 shadow-2xs transition-all hover:shadow-md"
               >
-                <img
-                  src={media.url}
-                  alt={media.productName}
-                  className="w-full h-40 object-cover"
-                />
+                <img src={media.url} alt={media.productName} className="w-full h-40 object-cover" />
 
                 {media.is_main && (
                   <span className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-white font-bold text-[10px] uppercase rounded-md shadow-xs flex items-center gap-1">

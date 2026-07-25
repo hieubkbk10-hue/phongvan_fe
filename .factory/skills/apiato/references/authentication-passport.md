@@ -35,16 +35,16 @@ OAuth Client
 
 Các khái niệm cần tách rõ:
 
-| Khái niệm | Ý nghĩa |
-| --- | --- |
-| User authentication | Xác minh danh tính user |
-| OAuth client authentication | Xác minh ứng dụng đang yêu cầu token |
-| Access token | Credential ngắn hạn dùng gọi API |
-| Refresh token | Credential dùng xin access token mới |
-| OAuth client | Ứng dụng tiêu thụ API, có `client_id` và có thể có `client_secret` |
-| Scope | Giới hạn capability của token |
-| API authorization | Quyết định token/user có được gọi endpoint hay không |
-| Domain permission | Quyền nghiệp vụ như sửa Work, quản lý Workspace |
+| Khái niệm                   | Ý nghĩa                                                            |
+| --------------------------- | ------------------------------------------------------------------ |
+| User authentication         | Xác minh danh tính user                                            |
+| OAuth client authentication | Xác minh ứng dụng đang yêu cầu token                               |
+| Access token                | Credential ngắn hạn dùng gọi API                                   |
+| Refresh token               | Credential dùng xin access token mới                               |
+| OAuth client                | Ứng dụng tiêu thụ API, có `client_id` và có thể có `client_secret` |
+| Scope                       | Giới hạn capability của token                                      |
+| API authorization           | Quyết định token/user có được gọi endpoint hay không               |
+| Domain permission           | Quyền nghiệp vụ như sửa Work, quản lý Workspace                    |
 
 Authentication chứng minh danh tính. Authorization quyết định quyền truy cập. Không trộn hai bước này.
 
@@ -406,35 +406,35 @@ Passport::actingAsClient($client, $scopes);
 
 Testing matrix:
 
-| Flow | Cases |
-| --- | --- |
-| Login | success, invalid credentials, disabled user, configured login attributes |
-| Proxy | server-owned client credentials, invalid client, stable error response |
-| Refresh | success, missing, invalid, expired, revoked |
-| Private route | missing token, valid token, expired token, revoked token |
-| Scope | allowed, missing, wrong scope |
-| Client credentials | valid client, invalid secret, no User assumption |
-| Logout | current access token revoked, linked refresh behavior |
-| Registration | valid, validation failure, duplicate identity |
-| Forgot password | existing/non-existing email return same public contract |
-| Email verification | valid signed URL, invalid signature, idempotent repeat |
+| Flow               | Cases                                                                    |
+| ------------------ | ------------------------------------------------------------------------ |
+| Login              | success, invalid credentials, disabled user, configured login attributes |
+| Proxy              | server-owned client credentials, invalid client, stable error response   |
+| Refresh            | success, missing, invalid, expired, revoked                              |
+| Private route      | missing token, valid token, expired token, revoked token                 |
+| Scope              | allowed, missing, wrong scope                                            |
+| Client credentials | valid client, invalid secret, no User assumption                         |
+| Logout             | current access token revoked, linked refresh behavior                    |
+| Registration       | valid, validation failure, duplicate identity                            |
+| Forgot password    | existing/non-existing email return same public contract                  |
+| Email verification | valid signed URL, invalid signature, idempotent repeat                   |
 
 Use `Passport::actingAs()` for endpoint authorization tests. Call the real OAuth token endpoint for tests whose purpose is client validation, grant behavior, refresh or token response.
 
 ## 17. Common mistakes
 
-| Mistake | Correction |
-| --- | --- |
-| Exposing `client_secret` to frontend | Use backend proxy or a grant designed for public clients |
-| Treating Client Credentials as User login | Keep client principal and user principal separate |
-| Using `Passport::actingAs()` to prove refresh works | Exercise OAuth endpoint for grant/refresh tests |
-| Assuming `.private.php` adds auth | Inspect route middleware |
-| Mixing authentication and RBAC | Authenticate first, authorize separately |
-| Logging OAuth request/response | Redact password, secret and tokens |
-| Hardcoding login field | Use configured allowlist consistently |
-| Reimplementing JWT issuance | Delegate to Passport authorization server |
-| Returning raw OAuth internals everywhere | Stabilize endpoint response contract |
-| Guessing token TTL units | Read provider/config implementation |
+| Mistake                                             | Correction                                               |
+| --------------------------------------------------- | -------------------------------------------------------- |
+| Exposing `client_secret` to frontend                | Use backend proxy or a grant designed for public clients |
+| Treating Client Credentials as User login           | Keep client principal and user principal separate        |
+| Using `Passport::actingAs()` to prove refresh works | Exercise OAuth endpoint for grant/refresh tests          |
+| Assuming `.private.php` adds auth                   | Inspect route middleware                                 |
+| Mixing authentication and RBAC                      | Authenticate first, authorize separately                 |
+| Logging OAuth request/response                      | Redact password, secret and tokens                       |
+| Hardcoding login field                              | Use configured allowlist consistently                    |
+| Reimplementing JWT issuance                         | Delegate to Passport authorization server                |
+| Returning raw OAuth internals everywhere            | Stabilize endpoint response contract                     |
+| Guessing token TTL units                            | Read provider/config implementation                      |
 
 ## 18. Checklist
 

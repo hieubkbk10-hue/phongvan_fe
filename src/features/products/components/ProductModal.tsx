@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Loader2 } from 'lucide-react';
-import type { Product, CreateProductInput } from '../types';
+import type { Product, CreateProductInput } from '@/types';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface ProductModalProps {
   isLoading?: boolean;
 }
 
+// UI: ProductModal hiển thị hộp thoại tạo/sửa sản phẩm với Z-Index cố định z-[10000] theo chuẩn 3.3
 export const ProductModal: React.FC<ProductModalProps> = ({
   isOpen,
   onClose,
@@ -27,7 +28,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     defaultValues: {
       name: '',
       price: 0,
-      status: 1,
+      stock_quantity: 0,
+      description: '',
+      category: '',
     },
   });
 
@@ -36,13 +39,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       reset({
         name: product.name,
         price: Number(product.price),
-        status: product.status,
+        stock_quantity: Number(product.stock_quantity || 0),
+        description: product.description || '',
+        category: product.category || '',
       });
     } else {
       reset({
         name: '',
         price: 0,
-        status: 1,
+        stock_quantity: 0,
+        description: '',
+        category: '',
       });
     }
   }, [product, reset, isOpen]);
@@ -50,7 +57,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -103,15 +110,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-              Trạng thái kinh doanh
+              Số lượng tồn kho
             </label>
-            <select
-              {...register('status', { valueAsNumber: true })}
+            <input
+              type="number"
+              placeholder="VD: 100"
+              {...register('stock_quantity', { valueAsNumber: true })}
               className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500"
-            >
-              <option value={1}>Hoạt động (ACTIVE)</option>
-              <option value={0}>Tạm ngưng (INACTIVE)</option>
-            </select>
+            />
           </div>
 
           {/* Action Buttons */}

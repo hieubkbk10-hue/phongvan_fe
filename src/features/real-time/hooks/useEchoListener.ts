@@ -1,16 +1,8 @@
 import { useEffect, useState } from 'react';
 import { echo } from '@/lib/echo';
+import type { EchoEventLog, ChannelType } from '@/types';
 
-export interface EchoEventLog {
-  id: string;
-  channel: string;
-  event: string;
-  payload: any;
-  timestamp: string;
-}
-
-export type ChannelType = 'public' | 'private' | 'presence';
-
+// LOGIC: Custom hook lắng nghe sự kiện WebSocket Realtime Soketi không sử dụng `any`
 export const useEchoListener = (
   channelName: string,
   eventName: string,
@@ -22,19 +14,17 @@ export const useEchoListener = (
   useEffect(() => {
     if (!channelName || !eventName) return;
 
-    let channelObj: any;
-
-    if (type === 'private') {
-      channelObj = echo.private(channelName);
-    } else if (type === 'presence') {
-      channelObj = echo.join(channelName);
-    } else {
-      channelObj = echo.channel(channelName);
-    }
+    // LOGIC: Lắng nghe channel public, private hoặc presence dựa trên cấu hình
+    const channelObj =
+      type === 'private'
+        ? echo.private(channelName)
+        : type === 'presence'
+          ? echo.join(channelName)
+          : echo.channel(channelName);
 
     setIsConnected(true);
 
-    const handleEvent = (data: any) => {
+    const handleEvent = (data: unknown) => {
       const newLog: EchoEventLog = {
         id: Math.random().toString(36).substring(2, 9),
         channel: channelName,
@@ -42,7 +32,7 @@ export const useEchoListener = (
         payload: data,
         timestamp: new Date().toLocaleTimeString(),
       };
-      setLogs((prev) => [newLog, ...prev.slice(0, 49)]); // keep last 50 events
+      setLogs((prev) => [newLog, ...prev.slice(0, 49)]);
     };
 
     channelObj.listen(eventName, handleEvent);

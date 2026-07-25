@@ -35,15 +35,15 @@ Không thêm cấu trúc Next.js, Vite, React app mới, Shadcn, Tailwind, Conve
 
 ## 2.3) Naming
 
-| Thành phần | Chuẩn |
-| --- | --- |
-| Section, Container | `PascalCase`, ví dụ `TodoSection/Work` |
-| PHP class/file | `PascalCase`, ví dụ `CreateWorkAction.php` |
-| Method, biến, property | `camelCase` |
-| DB table, column, request field, response field | `snake_case` |
-| Route URI | lowercase, RESTful, danh từ số nhiều |
-| Route file | `{ActionName}.v{version}.{visibility}.php` |
-| Config file | `{section}-{container}.php`, ví dụ `todoSection-work.php` |
+| Thành phần                                      | Chuẩn                                                     |
+| ----------------------------------------------- | --------------------------------------------------------- |
+| Section, Container                              | `PascalCase`, ví dụ `TodoSection/Work`                    |
+| PHP class/file                                  | `PascalCase`, ví dụ `CreateWorkAction.php`                |
+| Method, biến, property                          | `camelCase`                                               |
+| DB table, column, request field, response field | `snake_case`                                              |
+| Route URI                                       | lowercase, RESTful, danh từ số nhiều                      |
+| Route file                                      | `{ActionName}.v{version}.{visibility}.php`                |
+| Config file                                     | `{section}-{container}.php`, ví dụ `todoSection-work.php` |
 
 Ví dụ route file:
 

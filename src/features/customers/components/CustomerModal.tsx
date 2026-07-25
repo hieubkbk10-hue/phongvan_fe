@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Loader2 } from 'lucide-react';
-import type { Customer, CreateCustomerInput } from '../types';
+import type { Customer, CreateCustomerInput } from '@/types';
 
 interface CustomerModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface CustomerModalProps {
   isLoading?: boolean;
 }
 
+// UI: CustomerModal hiển thị hộp thoại thêm/sửa khách hàng với Z-Index cố định z-[10000] theo chuẩn 3.3
 export const CustomerModal: React.FC<CustomerModalProps> = ({
   isOpen,
   onClose,
@@ -37,7 +38,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       reset({
         name: customer.name,
         phone: customer.phone,
-        address: customer.address,
+        address: customer.address || '',
         email: customer.email || '',
       });
     } else {
@@ -53,7 +54,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -101,7 +102,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
               })}
               className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none focus:border-emerald-500 font-mono"
             />
-            <p className="text-[11px] text-slate-400 mt-1">Lưu ý: Bắt đầu bằng dấu + và mã quốc gia (Ví dụ: +84 cho Việt Nam)</p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Lưu ý: Bắt đầu bằng dấu + và mã quốc gia (Ví dụ: +84 cho Việt Nam)
+            </p>
             {errors.phone && (
               <p className="text-xs text-rose-500 mt-1 font-medium">{errors.phone.message}</p>
             )}

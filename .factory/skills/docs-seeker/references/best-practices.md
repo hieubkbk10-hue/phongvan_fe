@@ -26,25 +26,25 @@ Use topic filters for focused asks, but fall back to base `llms.txt` if wording 
 
 ## Source quality ladder
 
-| Priority | Source | Notes |
-| --- | --- | --- |
-| 1 | Official versioned docs | Best for API behavior. |
-| 2 | Official release/migration docs | Best for breaking changes. |
-| 3 | Official repository README/examples | Good when docs are sparse. |
-| 4 | Package registry metadata | Good for repo/homepage/version. |
-| 5 | Maintainer issue/discussion | Useful with date caveat. |
-| 6 | Community blog/tutorial | Last resort, always label. |
+| Priority | Source                              | Notes                           |
+| -------- | ----------------------------------- | ------------------------------- |
+| 1        | Official versioned docs             | Best for API behavior.          |
+| 2        | Official release/migration docs     | Best for breaking changes.      |
+| 3        | Official repository README/examples | Good when docs are sparse.      |
+| 4        | Package registry metadata           | Good for repo/homepage/version. |
+| 5        | Maintainer issue/discussion         | Useful with date caveat.        |
+| 6        | Community blog/tutorial             | Last resort, always label.      |
 
 ## Parallel agent use
 
 Use agents when there are many URLs, versions, or topics.
 
-| Scope | Suggested split |
-| --- | --- |
-| 1-3 pages | Read directly or one explorer. |
-| 4-10 pages | 2-4 agents by topic. |
-| 11+ pages | First batch: critical docs only, max 5 agents. |
-| Multi-version | One agent per version or migration path. |
+| Scope         | Suggested split                                |
+| ------------- | ---------------------------------------------- |
+| 1-3 pages     | Read directly or one explorer.                 |
+| 4-10 pages    | 2-4 agents by topic.                           |
+| 11+ pages     | First batch: critical docs only, max 5 agents. |
+| Multi-version | One agent per version or migration path.       |
 
 Give each agent a bounded brief: source URLs, exact topic, expected output, and source citation requirement.
 
@@ -62,12 +62,15 @@ Good:
 
 ```md
 ## Install
+
 [answer synthesized from sources]
 
 ## Config
+
 [answer synthesized from sources]
 
 ## Caveats
+
 [version/source gaps]
 ```
 
@@ -84,14 +87,17 @@ Keep reports compact:
 
 ```md
 ## Answer
+
 [direct answer]
 
 ## Evidence
-| Claim | Source | Version/date |
-| --- | --- | --- |
-| ... | [Official docs](url) section/title | ... |
+
+| Claim | Source                             | Version/date |
+| ----- | ---------------------------------- | ------------ |
+| ...   | [Official docs](url) section/title | ...          |
 
 ## Notes
+
 - [caveat or missing area]
 ```
 

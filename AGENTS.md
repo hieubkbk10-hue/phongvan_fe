@@ -95,4 +95,3 @@
 - Ưu tiên dùng tiền tố chuẩn hóa từ `.factory`: `// QUYỀN:` (phân quyền), `// LOGIC:` (thuật toán/nghiệp vụ), `// UI:` (giao diện/kích thước động).
 - Viết PHPDoc/Docblock cho Action, Task, DTO/Props để hỗ trợ IDE Intellisense; duy trì block `@api` documentation trong các file route Apiato.
 - Tuyệt đối không commit code cũ bị comment (dead code); xóa hẳn vì Git đã lưu vết history.
-

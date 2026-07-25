@@ -1,8 +1,14 @@
 import { apiClient } from '@/lib/api-client';
-import type { Customer, CustomerListParams, CreateCustomerInput, UpdateCustomerInput } from '../types';
+import type {
+  Customer,
+  CustomerListParams,
+  CreateCustomerInput,
+  UpdateCustomerInput,
+} from '@/types';
 
+// LOGIC: Lấy danh sách khách hàng từ API phân trang và lọc xóa mềm
 export const getCustomers = async (params?: CustomerListParams) => {
-  const queryParams: Record<string, any> = {
+  const queryParams: Record<string, string | number> = {
     page: params?.page || 1,
     limit: params?.limit || 15,
   };
@@ -24,7 +30,15 @@ export const getCustomers = async (params?: CustomerListParams) => {
 
   const response = await apiClient.get<{
     data: Customer[];
-    meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } };
+    meta?: {
+      pagination?: {
+        total: number;
+        count: number;
+        per_page: number;
+        current_page: number;
+        total_pages: number;
+      };
+    };
   }>('/customers', {
     params: queryParams,
   });

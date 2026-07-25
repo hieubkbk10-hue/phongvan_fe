@@ -1,23 +1,42 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
-import { ShoppingCart, ArrowLeft, Trash2, User, Package, DollarSign, Loader2, CreditCard, Building2 } from 'lucide-react';
+import {
+  ShoppingCart,
+  ArrowLeft,
+  Trash2,
+  User,
+  Package,
+  DollarSign,
+  Loader2,
+  CreditCard,
+  Building2,
+} from 'lucide-react';
+import { AxiosError } from 'axios';
 import { getCustomers } from '@/features/customers/api/customersApi';
 import { getProducts } from '@/features/products/api/productsApi';
 import { createOrder } from '@/features/orders/api/ordersApi';
-import type { Customer } from '@/features/customers/types';
-import type { Product } from '@/features/products/types';
+import type { Customer, Product, CreateOrderInput, ApiResponse } from '@/types';
 
 export const Route = createFileRoute('/admin/orders/create')({
   component: CreateOrderPage,
 });
 
+interface OrderItemFormState {
+  product_id: string;
+  product_name: string;
+  list_price: number;
+  unit_price: number;
+  quantity: number;
+  price_override_reason: string;
+}
+
 function CreateOrderPage() {
   const navigate = useNavigate();
 
-  // Data sources
+  // UI: Trạng thái nguồn dữ liệu và loading tuân thủ is[Feature][State]
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Form states
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -34,33 +53,24 @@ function CreateOrderPage() {
   const [shippingFee, setShippingFee] = useState<number>(0);
   const [advancePayment, setAdvancePayment] = useState<number>(0);
 
-  const [items, setItems] = useState<
-    {
-      product_id: string;
-      product_name: string;
-      list_price: number;
-      unit_price: number;
-      quantity: number;
-      price_override_reason: string;
-    }[]
-  >([]);
+  const [items, setItems] = useState<OrderItemFormState[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [submitting, setSubmitting] = useState(false);
-
+  // LOGIC: Nạp dữ liệu danh sách khách hàng và sản phẩm ban đầu
   useEffect(() => {
     const loadInitData = async () => {
       try {
-        setLoadingData(true);
+        setIsLoadingData(true);
         const [custRes, prodRes] = await Promise.all([
           getCustomers({ limit: 100 }),
-          getProducts({ limit: 100, status: 1 }), // Active products only
+          getProducts({ limit: 100, status: 1 }),
         ]);
-        setCustomers(custRes.data);
-        setProducts(prodRes.data);
-      } catch (err) {
+        setCustomers(custRes.data || []);
+        setProducts(prodRes.data || []);
+      } catch (err: unknown) {
         console.error('Lỗi nạp dữ liệu ban đầu:', err);
       } finally {
-        setLoadingData(false);
+        setIsLoadingData(false);
       }
     };
     loadInitData();
@@ -107,7 +117,11 @@ function CreateOrderPage() {
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (index: number, field: string, value: any) => {
+  const handleItemChange = (
+    index: number,
+    field: keyof OrderItemFormState,
+    value: string | number
+  ) => {
     setItems((prev) =>
       prev.map((item, i) => {
         if (i === index) {
@@ -118,7 +132,7 @@ function CreateOrderPage() {
     );
   };
 
-  // Memory cents calculations
+  // LOGIC: Tính toán chi tiết tiền đơn hàng bằng số nguyên cents để tránh sai số thập phân
   const subtotalCents = items.reduce(
     (sum, item) => sum + Math.round(item.unit_price * 100) * item.quantity,
     0
@@ -131,6 +145,7 @@ function CreateOrderPage() {
   const remainingAmountCents = Math.max(0, totalAmountCents - advancePaymentCents);
   const remainingAmount = remainingAmountCents / 100;
 
+  // QUYỀN: Xử lý submit form tạo đơn hàng với đầy đủ kiểm tra và không dùng kiểu any
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomerId) {
@@ -142,12 +157,9 @@ function CreateOrderPage() {
       return;
     }
 
-    // Validate price override reason
     for (const item of items) {
       if (item.unit_price !== item.list_price && !item.price_override_reason.trim()) {
-        alert(
-          `Vui lòng nhập lý do thay đổi giá bán cho sản phẩm "${item.product_name}"`
-        );
+        alert(`Vui lòng nhập lý do thay đổi giá bán cho sản phẩm "${item.product_name}"`);
         return;
       }
     }
@@ -157,21 +169,16 @@ function CreateOrderPage() {
       return;
     }
 
-    const payload: any = {
+    const payload: CreateOrderInput = {
       customer_id: selectedCustomerId,
-      customer_name_snapshot: customerName,
-      customer_phone_snapshot: customerPhone,
-      customer_address_snapshot: customerAddress,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_address: customerAddress,
       payment_method: Number(paymentMethod),
-      shipping_fee: Number(shippingFee),
-      advance_payment: Number(advancePayment),
       items: items.map((i) => ({
         product_id: i.product_id,
         unit_price: Number(i.unit_price),
         quantity: Number(i.quantity),
-        ...(i.unit_price !== i.list_price
-          ? { price_override_reason: i.price_override_reason }
-          : {}),
       })),
     };
 
@@ -191,17 +198,22 @@ function CreateOrderPage() {
     }
 
     try {
-      setSubmitting(true);
+      setIsSubmitting(true);
       await createOrder(payload);
       navigate({ to: '/admin/orders' });
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Tạo đơn hàng thất bại.');
+    } catch (err: unknown) {
+      let message = 'Tạo đơn hàng thất bại.';
+      if (err instanceof AxiosError) {
+        const res = err.response?.data as ApiResponse | undefined;
+        if (res?.message) message = res.message;
+      }
+      alert(message);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (loadingData) {
+  if (isLoadingData) {
     return (
       <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
         <Loader2 size={32} className="animate-spin text-amber-600" />
@@ -354,7 +366,10 @@ function CreateOrderPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                       <div>
                         <label className="block text-slate-500 font-medium mb-1">
-                          Giá niêm yết: <span className="font-semibold text-slate-700 dark:text-slate-300">{item.list_price.toLocaleString()} đ</span>
+                          Giá niêm yết:{' '}
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">
+                            {item.list_price.toLocaleString()} đ
+                          </span>
                         </label>
                         <input
                           type="number"
@@ -381,7 +396,9 @@ function CreateOrderPage() {
                       </div>
 
                       <div>
-                        <label className="block text-slate-500 font-medium mb-1">Thành tiền item</label>
+                        <label className="block text-slate-500 font-medium mb-1">
+                          Thành tiền item
+                        </label>
                         <p className="px-3 py-1.5 font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200 dark:border-amber-800">
                           {(item.unit_price * item.quantity).toLocaleString()} đ
                         </p>
@@ -514,15 +531,21 @@ function CreateOrderPage() {
           <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2 text-sm max-w-sm ml-auto">
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
               <span>Tạm tính (Subtotal):</span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">{subtotal.toLocaleString()} đ</span>
+              <span className="font-semibold text-slate-900 dark:text-slate-100">
+                {subtotal.toLocaleString()} đ
+              </span>
             </div>
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
               <span>Phí vận chuyển:</span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">{shippingFee.toLocaleString()} đ</span>
+              <span className="font-semibold text-slate-900 dark:text-slate-100">
+                {shippingFee.toLocaleString()} đ
+              </span>
             </div>
             <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex justify-between font-bold text-base text-slate-900 dark:text-slate-100">
               <span>Tổng đơn hàng:</span>
-              <span className="text-amber-600 dark:text-amber-400">{totalAmount.toLocaleString()} đ</span>
+              <span className="text-amber-600 dark:text-amber-400">
+                {totalAmount.toLocaleString()} đ
+              </span>
             </div>
             <div className="flex justify-between text-xs text-slate-500">
               <span>Tiền cọc (Advance):</span>
@@ -546,10 +569,10 @@ function CreateOrderPage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={isSubmitting}
             className="px-6 py-2.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 active:bg-amber-800 rounded-xl shadow-md transition-all flex items-center gap-2"
           >
-            {submitting && <Loader2 size={16} className="animate-spin" />}
+            {isSubmitting && <Loader2 size={16} className="animate-spin" />}
             <span>Tạo đơn hàng</span>
           </button>
         </div>

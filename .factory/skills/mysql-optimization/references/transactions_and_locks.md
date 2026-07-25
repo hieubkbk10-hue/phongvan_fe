@@ -3,10 +3,12 @@
 ## 1. Mức Độ Cô Lập & Next-Key / Gap Locks
 
 ### Mức Cô Lập (Isolation Levels)
-- `REPEATABLE READ` *(Mặc định MySQL)*: Sử dụng **Next-Key Locks** (Record Lock + Gap Lock) để ngăn chặn hiện tượng Phantom Reads.
+
+- `REPEATABLE READ` _(Mặc định MySQL)_: Sử dụng **Next-Key Locks** (Record Lock + Gap Lock) để ngăn chặn hiện tượng Phantom Reads.
 - `READ COMMITTED`: Không dùng Gap Lock (trừ khi kiểm tra FK/Unique). Giúp giảm nguy cơ Deadlock đáng kể trong các ứng dụng Web.
 
 ### Cơ Chế Gap Lock & Deadlock Trap
+
 - **Gap Lock**: Khóa khoảng trống giữa các bản ghi chỉ mục. Nhiều transaction có thể cùng giữ Gap Lock trên cùng 1 khoảng trống (không chặn nhau đọc).
 - **Deadlock Trap với `FOR UPDATE`**:
   1. Transaction A giữ Gap Lock (10, 20) qua `SELECT ... BETWEEN 10 AND 20 FOR UPDATE`.
@@ -28,6 +30,7 @@
 ## 3. Cẩm Nang Giải Mã Log Deadlock (`SHOW ENGINE INNODB STATUS`)
 
 Log bao gồm các phần chính:
+
 1. `*** (1) TRANSACTION:` & `*** (2) TRANSACTION:`: Mã transaction, thread ID và câu lệnh SQL gây xung đột.
 2. `WAITING FOR THIS LOCK TO BE GRANTED`: Loại khóa đang chờ (`X` exclusive hoặc `S` shared), tên chỉ mục (`PRIMARY` hoặc Secondary Index).
 3. `HOLDS THE LOCK(S)`: Khóa mà transaction kia đang nắm giữ.
@@ -47,11 +50,13 @@ Log bao gồm các phần chính:
 ## 5. Kỹ Thuật Bulk Insert & Upsert (`ON DUPLICATE KEY UPDATE`)
 
 ### Bulk Insert Best Practices:
+
 1. **Multi-row Insert**: Gộp các lệnh `INSERT` đơn lẻ thành lô (1,000 - 10,000 dòng/câu lệnh) để giảm RTT mạng và overhead Redo Log.
 2. **Transaction Chunking**: Không gộp hàng triệu dòng vào 1 transaction duy nhất (gây phình Undo Log). Hãy `COMMIT` sau mỗi lô 10,000 dòng.
 3. **`innodb_log_file_size`**: Đảm bảo kích thước Redo Log đủ lớn để tránh hiện tượng "Furious Flushing" gây treo I/O khi Bulk Insert.
 
 ### Queue Worker Atomic Update Pattern (Né Deadlock & Lock Contention):
+
 ```php
 // Thay vì SELECT ... FOR UPDATE (dễ deadlock):
 $affected = DB::table('jobs')

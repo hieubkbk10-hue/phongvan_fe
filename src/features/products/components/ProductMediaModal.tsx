@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Star, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
-import type { Product, MediaItem } from '../types';
-import { getMediaList } from '../types';
+import { AxiosError } from 'axios';
+import type { Product, MediaItem, ApiResponse } from '@/types';
+import { getMediaList } from '@/types';
 import { uploadProductMedia, deleteProductMedia, setMainProductMedia } from '../api/productsApi';
+
+interface ExtendedMediaItem extends MediaItem {
+  is_main?: boolean;
+}
 
 interface ProductMediaModalProps {
   isOpen: boolean;
@@ -11,14 +16,16 @@ interface ProductMediaModalProps {
   onMediaUpdated: () => void;
 }
 
+// UI: ProductMediaModal là File/Image Viewer Modal. Z-Index stack: Backdrop z-[1050], Content z-[1060] theo chuẩn 3.3
 export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
   isOpen,
   onClose,
   product,
   onMediaUpdated,
 }) => {
-  const [localMedia, setLocalMedia] = useState<MediaItem[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [localMedia, setLocalMedia] = useState<ExtendedMediaItem[]>([]);
+  // UI: State quản lý tiến trình upload ảnh tuân thủ is[Feature][State]
+  const [isUploading, setIsUploading] = useState(false);
   const [actionMediaId, setActionMediaId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -44,17 +51,22 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
     }
 
     try {
-      setUploading(true);
+      setIsUploading(true);
       setErrorMsg(null);
       const newMedia = await uploadProductMedia(product.id, file);
       if (newMedia) {
         setLocalMedia((prev) => [...prev, newMedia]);
       }
       onMediaUpdated();
-    } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || 'Tải ảnh lên thất bại.');
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        const responseData = err.response?.data as ApiResponse | undefined;
+        setErrorMsg(responseData?.message || 'Tải ảnh lên thất bại.');
+      } else {
+        setErrorMsg('Tải ảnh lên thất bại.');
+      }
     } finally {
-      setUploading(false);
+      setIsUploading(false);
       e.target.value = '';
     }
   };
@@ -63,14 +75,17 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
     const previousMedia = [...localMedia];
     try {
       setActionMediaId(mediaId);
-      setLocalMedia((prev) =>
-        prev.map((m) => ({ ...m, is_main: m.id === mediaId }))
-      );
+      setLocalMedia((prev) => prev.map((m) => ({ ...m, is_main: m.id === mediaId })));
       await setMainProductMedia(product.id, mediaId);
       onMediaUpdated();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLocalMedia(previousMedia);
-      setErrorMsg(err?.response?.data?.message || 'Không thể đặt ảnh chính.');
+      if (err instanceof AxiosError) {
+        const responseData = err.response?.data as ApiResponse | undefined;
+        setErrorMsg(responseData?.message || 'Không thể đặt ảnh chính.');
+      } else {
+        setErrorMsg('Không thể đặt ảnh chính.');
+      }
     } finally {
       setActionMediaId(null);
     }
@@ -84,17 +99,22 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
       setLocalMedia((prev) => prev.filter((m) => m.id !== mediaId));
       await deleteProductMedia(product.id, mediaId);
       onMediaUpdated();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLocalMedia(previousMedia);
-      setErrorMsg(err?.response?.data?.message || 'Không thể xóa ảnh.');
+      if (err instanceof AxiosError) {
+        const responseData = err.response?.data as ApiResponse | undefined;
+        setErrorMsg(responseData?.message || 'Không thể xóa ảnh.');
+      } else {
+        setErrorMsg('Không thể xóa ảnh.');
+      }
     } finally {
       setActionMediaId(null);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-[1050] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 z-[1060]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
           <div>
@@ -128,25 +148,29 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
                 <ImageIcon size={20} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Tải ảnh mới</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Hỗ trợ PNG, JPG, WEBP (Tối đa 9 ảnh)</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  Tải ảnh mới
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Hỗ trợ PNG, JPG, WEBP (Tối đa 9 ảnh)
+                </p>
               </div>
             </div>
 
             <label
               className={`px-4 py-2 text-sm font-medium rounded-lg shadow-xs flex items-center gap-2 cursor-pointer transition-all ${
-                canUpload && !uploading
+                canUpload && !isUploading
                   ? 'bg-blue-600 hover:bg-blue-700 text-white'
                   : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-              <span>{uploading ? 'Đang tải...' : 'Chọn file'}</span>
+              {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+              <span>{isUploading ? 'Đang tải...' : 'Chọn file'}</span>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                disabled={!canUpload || uploading}
+                disabled={!canUpload || isUploading}
                 className="hidden"
               />
             </label>
@@ -169,11 +193,7 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
                       : 'border-slate-200 dark:border-slate-700'
                   }`}
                 >
-                  <img
-                    src={item.url}
-                    alt="Product media"
-                    className="w-full h-36 object-cover"
-                  />
+                  <img src={item.url} alt="Product media" className="w-full h-36 object-cover" />
 
                   {/* Badges */}
                   {item.is_main && (
@@ -191,7 +211,11 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
                         className="p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
                         title="Đặt làm ảnh chính"
                       >
-                        {actionMediaId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Star size={16} />}
+                        {actionMediaId === item.id ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Star size={16} />
+                        )}
                       </button>
                     )}
 
@@ -201,7 +225,11 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
                       className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors"
                       title="Xóa ảnh"
                     >
-                      {actionMediaId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                      {actionMediaId === item.id ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
                     </button>
                   </div>
                 </div>

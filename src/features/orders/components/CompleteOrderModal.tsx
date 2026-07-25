@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { X, CheckCircle2, Loader2 } from 'lucide-react';
-import type { Order, CompleteOrderInput } from '../types';
+import type { Order, CompleteOrderInput } from '@/types';
 
 interface CompleteOrderModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface CompleteOrderModalProps {
   isLoading?: boolean;
 }
 
+// UI: CompleteOrderModal hiển thị hộp thoại chuyển đơn sang Hoàn thành với Z-Index cố định z-[10000] theo chuẩn 3.3
 export const CompleteOrderModal: React.FC<CompleteOrderModalProps> = ({
   isOpen,
   onClose,
@@ -22,17 +23,12 @@ export const CompleteOrderModal: React.FC<CompleteOrderModalProps> = ({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CompleteOrderInput>({
-    defaultValues: {
-      delivery_date: new Date().toISOString().split('T')[0],
-      shipping_carrier: 'Giao Hàng Nhanh',
-    },
-  });
+  } = useForm<{ note: string }>();
 
   if (!isOpen || !order) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -51,37 +47,30 @@ export const CompleteOrderModal: React.FC<CompleteOrderModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit(onConfirm)} className="p-6 space-y-4">
+        <form
+          onSubmit={handleSubmit((data) => onConfirm({ id: order.id, note: data.note }))}
+          className="p-6 space-y-4"
+        >
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Chuyển đơn hàng <span className="font-bold font-mono text-slate-900 dark:text-slate-100">{order.code}</span> sang trạng thái Hoàn thành. Vui lòng nhập thông tin giao hàng bắt buộc:
+            Chuyển đơn hàng{' '}
+            <span className="font-bold font-mono text-slate-900 dark:text-slate-100">
+              {order.code}
+            </span>{' '}
+            sang trạng thái Hoàn thành:
           </p>
 
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-              Ngày thực tế giao hàng <span className="text-rose-500">*</span>
+              Ghi chú hoàn thành (Không bắt buộc)
             </label>
-            <input
-              type="date"
-              {...register('delivery_date', { required: 'Vui lòng chọn ngày giao hàng' })}
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500"
-            />
-            {errors.delivery_date && (
-              <p className="text-xs text-rose-500 mt-1 font-medium">{errors.delivery_date.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-              Đơn vị vận chuyển <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="VD: Viettel Post, Giao Hàng Tiết Kiệm..."
-              {...register('shipping_carrier', { required: 'Vui lòng nhập đơn vị vận chuyển' })}
+            <textarea
+              rows={3}
+              placeholder="VD: Khách đã nhận hàng đầy đủ..."
+              {...register('note')}
               className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none focus:border-emerald-500"
             />
-            {errors.shipping_carrier && (
-              <p className="text-xs text-rose-500 mt-1 font-medium">{errors.shipping_carrier.message}</p>
+            {errors.note && (
+              <p className="text-xs text-rose-500 mt-1 font-medium">{errors.note.message}</p>
             )}
           </div>
 

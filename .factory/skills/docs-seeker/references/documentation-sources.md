@@ -78,16 +78,16 @@ Verify official status by checking website links, package metadata, README badge
 
 Use registries to find repository, homepage, docs URL, versions, and release dates.
 
-| Ecosystem | Registry/query |
-| --- | --- |
-| JS/TS | npm package page or `npm info {pkg}` |
-| Python | PyPI page or `pip show {pkg}` |
-| PHP | Packagist package page or `composer show {pkg}` |
-| Ruby | RubyGems page |
-| Rust | crates.io page |
-| Go | pkg.go.dev and module repository |
-| Java | Maven Central artifact page |
-| .NET | NuGet package page |
+| Ecosystem | Registry/query                                  |
+| --------- | ----------------------------------------------- |
+| JS/TS     | npm package page or `npm info {pkg}`            |
+| Python    | PyPI page or `pip show {pkg}`                   |
+| PHP       | Packagist package page or `composer show {pkg}` |
+| Ruby      | RubyGems page                                   |
+| Rust      | crates.io page                                  |
+| Go        | pkg.go.dev and module repository                |
+| Java      | Maven Central artifact page                     |
+| .NET      | NuGet package page                              |
 
 ## Version-specific sources
 
@@ -114,6 +114,7 @@ Prefer versioned URLs like `/v1/`, `/v2/`, `/docs/11.x/`, tags, release branches
 
 ```md
 Sources used:
+
 - Official docs: [url], version/date
 - Repository example: [url], tag/commit if known
 - Package metadata: [url]

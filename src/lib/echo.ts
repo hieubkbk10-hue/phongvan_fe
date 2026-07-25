@@ -1,12 +1,24 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import type { ChannelAuthorizationCallback } from 'pusher-js';
 import { env } from '@/config/env';
 import { useAuthStore } from '@/features/auth/stores/useAuthStore';
 
-(window as any).Pusher = Pusher;
+declare global {
+  interface Window {
+    Pusher: typeof Pusher;
+  }
+}
+
+window.Pusher = Pusher;
 
 const isSecure = env.SOKETI_SCHEME === 'https';
 
+export interface AuthorizerChannel {
+  name: string;
+}
+
+// LOGIC: Khởi tạo kết nối Laravel Echo với Soketi WebSocket Server
 export const echo = new Echo({
   broadcaster: 'pusher',
   key: env.SOKETI_APP_KEY,
@@ -18,9 +30,9 @@ export const echo = new Echo({
   enabledTransports: ['ws', 'wss'],
   cluster: env.SOKETI_CLUSTER,
   authEndpoint: `${env.API_URL}/broadcasting/auth`,
-  authorizer: (channel: any) => {
+  authorizer: (channel: AuthorizerChannel) => {
     return {
-      authorize: (socketId: string, callback: (error: any, data?: any) => void) => {
+      authorize: (socketId: string, callback: ChannelAuthorizationCallback) => {
         const token = useAuthStore.getState().token;
         fetch(`${env.API_URL}/broadcasting/auth`, {
           method: 'POST',
@@ -35,7 +47,7 @@ export const echo = new Echo({
         })
           .then((response) => response.json())
           .then((data) => callback(null, data))
-          .catch((error) => callback(error));
+          .catch((error: Error) => callback(error, { auth: '' }));
       },
     };
   },

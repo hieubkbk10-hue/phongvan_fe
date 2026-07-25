@@ -15,16 +15,16 @@ Fetch/search failed
 
 ## Common failures
 
-| Symptom | Likely cause | Response |
-| --- | --- | --- |
-| context7 404 | Not indexed, wrong org/repo, wrong website normalization. | Try `{org}/{repo}`, then `websites/{domain_path}`, then official `/llms.txt`. |
-| Official `/llms.txt` 404 | Docs do not support llms.txt or moved domain. | Try docs subdomain, project site, WebSearch, then repo analysis. |
-| 403/429 | Auth/rate limit/security block. | Stop retrying, switch source, mention limit. |
-| Empty/garbled page | JS-rendered or blocked content. | Use docs repo, Markdown source, package docs, or public mirror. |
-| GitHub repo 404 | Private, renamed, wrong org, proprietary. | Find official site, package registry, or organization profile. |
-| Repomix hangs/OOM | Repo too large or contains binaries. | Shallow clone, include docs only, exclude binaries/build artifacts. |
-| Conflicting versions | Legacy docs mixed with current docs. | Identify version and label legacy/current clearly. |
-| Agent findings disagree | Source quality differs. | Prefer official/versioned docs, cite disagreement. |
+| Symptom                  | Likely cause                                              | Response                                                                      |
+| ------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| context7 404             | Not indexed, wrong org/repo, wrong website normalization. | Try `{org}/{repo}`, then `websites/{domain_path}`, then official `/llms.txt`. |
+| Official `/llms.txt` 404 | Docs do not support llms.txt or moved domain.             | Try docs subdomain, project site, WebSearch, then repo analysis.              |
+| 403/429                  | Auth/rate limit/security block.                           | Stop retrying, switch source, mention limit.                                  |
+| Empty/garbled page       | JS-rendered or blocked content.                           | Use docs repo, Markdown source, package docs, or public mirror.               |
+| GitHub repo 404          | Private, renamed, wrong org, proprietary.                 | Find official site, package registry, or organization profile.                |
+| Repomix hangs/OOM        | Repo too large or contains binaries.                      | Shallow clone, include docs only, exclude binaries/build artifacts.           |
+| Conflicting versions     | Legacy docs mixed with current docs.                      | Identify version and label legacy/current clearly.                            |
+| Agent findings disagree  | Source quality differs.                                   | Prefer official/versioned docs, cite disagreement.                            |
 
 ## context7 pattern checks
 
@@ -91,9 +91,10 @@ Report shape:
 
 ```md
 Conflict: [topic]
+
 - Source A ([url], version/date): says ...
 - Source B ([url], version/date): says ...
-Decision: prioritized ... because ...
+  Decision: prioritized ... because ...
 ```
 
 ## User-facing error notes

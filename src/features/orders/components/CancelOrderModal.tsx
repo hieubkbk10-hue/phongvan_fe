@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { X, XCircle, Loader2 } from 'lucide-react';
-import type { Order, CancelOrderInput } from '../types';
+import type { Order, CancelOrderInput } from '@/types';
 
 interface CancelOrderModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface CancelOrderModalProps {
   isLoading?: boolean;
 }
 
+// UI: CancelOrderModal hiển thị hộp thoại xác nhận hủy đơn hàng với Z-Index cố định z-[10000] theo chuẩn 3.3
 export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   isOpen,
   onClose,
@@ -27,7 +28,7 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   if (!isOpen || !order) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
@@ -46,9 +47,16 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit(onConfirm)} className="p-6 space-y-4">
+        <form
+          onSubmit={handleSubmit((data) => onConfirm({ ...data, id: order.id }))}
+          className="p-6 space-y-4"
+        >
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Hủy đơn hàng <span className="font-bold font-mono text-slate-900 dark:text-slate-100">{order.code}</span>. Hành động này không thể hoàn tác. Vui lòng nhập lý do hủy:
+            Hủy đơn hàng{' '}
+            <span className="font-bold font-mono text-slate-900 dark:text-slate-100">
+              {order.code}
+            </span>
+            . Hành động này không thể hoàn tác. Vui lòng nhập lý do hủy:
           </p>
 
           <div>
@@ -62,7 +70,9 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
               className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none focus:border-rose-500"
             />
             {errors.cancel_reason && (
-              <p className="text-xs text-rose-500 mt-1 font-medium">{errors.cancel_reason.message}</p>
+              <p className="text-xs text-rose-500 mt-1 font-medium">
+                {errors.cancel_reason.message}
+              </p>
             )}
           </div>
 

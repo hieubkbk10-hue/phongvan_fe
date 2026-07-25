@@ -1,9 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { Package, Plus, Search, Filter, Edit3, Trash2, Image as ImageIcon, Loader2, CheckCircle2, XCircle } from 'lucide-react';
-import type { Product, CreateProductInput } from '@/features/products/types';
-import { getMediaList } from '@/features/products/types';
-import { getProducts, createProduct, updateProduct, deleteProduct } from '@/features/products/api/productsApi';
+import {
+  Package,
+  Plus,
+  Search,
+  Filter,
+  Edit3,
+  Trash2,
+  Image as ImageIcon,
+  Loader2,
+  CheckCircle2,
+} from 'lucide-react';
+import { AxiosError } from 'axios';
+import type { Product, CreateProductInput, ApiResponse } from '@/types';
+import { getMediaList } from '@/types';
+import {
+  getProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from '@/features/products/api/productsApi';
 import { ProductModal } from '@/features/products/components/ProductModal';
 import { ProductMediaModal } from '@/features/products/components/ProductMediaModal';
 import { useRealtimeSync } from '@/features/real-time/hooks/useRealtimeSync';
@@ -14,30 +30,32 @@ export const Route = createFileRoute('/admin/products')({
 
 function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  // UI: Quản lý các biến state boolean theo chuẩn is[Feature][State]
+  const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
 
   // Modals state
-  const [modalOpen, setModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [selectedMediaProduct, setSelectedMediaProduct] = useState<Product | null>(null);
 
+  // LOGIC: Tải danh sách sản phẩm phân trang từ API
   const fetchProducts = useCallback(async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       const result = await getProducts({
         page,
         limit: 10,
         search: search || undefined,
         status: statusFilter,
       });
-      
+
       let items = Array.isArray(result.data) ? result.data : [];
       if (statusFilter !== undefined) {
         items = items.filter((p) => Number(p.status) === Number(statusFilter));
@@ -49,10 +67,10 @@ function ProductsPage() {
       } else {
         setTotalPages(1);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Lỗi tải danh sách sản phẩm:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [page, search, statusFilter]);
 
@@ -60,7 +78,7 @@ function ProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Real-time Soketi WebSocket listener for Products
+  // LOGIC: Soketi WebSocket listener tự động làm mới khi có sự kiện sản phẩm
   useRealtimeSync({
     channel: 'products',
     events: ['ProductCreated', 'ProductUpdated', 'ProductDeleted', 'ProductStatusUpdated'],
@@ -69,76 +87,61 @@ function ProductsPage() {
     },
   });
 
-  // Optimistic UI for Create/Update
+  // LOGIC: Optimistic UI tạo mới hoặc cập nhật thông tin sản phẩm 0ms latency
   const handleCreateOrUpdate = async (data: CreateProductInput) => {
     const previousProducts = [...products];
     try {
-      setSubmitting(true);
+      setIsSubmitting(true);
       if (editingProduct) {
-        // Optimistic update
         setProducts((prev) =>
           prev.map((p) => (p.id === editingProduct.id ? { ...p, ...data } : p))
         );
-        setModalOpen(false);
+        setIsModalOpen(false);
         const updated = await updateProduct({ id: editingProduct.id, ...data });
         setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? updated : p)));
       } else {
-        // Optimistic creation
         const tempId = 'temp-' + Date.now();
         const optimisticProd: Product = {
           id: tempId,
           name: data.name,
           price: data.price,
-          status: data.status,
+          stock_quantity: data.stock_quantity || 0,
           media: [],
         };
         setProducts((prev) => [optimisticProd, ...prev]);
-        setModalOpen(false);
+        setIsModalOpen(false);
         const created = await createProduct(data);
         setProducts((prev) => prev.map((p) => (p.id === tempId ? created : p)));
       }
       setEditingProduct(null);
-    } catch (error: any) {
-      setProducts(previousProducts); // Rollback on error
-      alert(error?.response?.data?.message || 'Thao tác thất bại.');
+    } catch (error: unknown) {
+      setProducts(previousProducts); // LOGIC: Rollback khi gặp lỗi API
+      let message = 'Thao tác thất bại.';
+      if (error instanceof AxiosError) {
+        const res = error.response?.data as ApiResponse | undefined;
+        if (res?.message) message = res.message;
+      }
+      alert(message);
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Optimistic UI for Delete
+  // LOGIC: Optimistic UI xóa sản phẩm
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}"? Hành động này sẽ thực hiện hard-delete.`)) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}"?`)) return;
     const previousProducts = [...products];
-    // Optimistically remove from list immediately
     setProducts((prev) => prev.filter((p) => p.id !== id));
     try {
       await deleteProduct(id);
-    } catch (error: any) {
-      setProducts(previousProducts); // Rollback on error
-      alert(error?.response?.data?.message || 'Xóa sản phẩm thất bại.');
-    }
-  };
-
-  // Optimistic UI for Toggle Status
-  const handleToggleStatus = async (product: Product) => {
-    const newStatus = product.status === 1 ? 0 : 1;
-    const previousProducts = [...products];
-    
-    // Optimistically update status
-    setProducts((prev) => {
-      const updatedList = prev.map((p) => (p.id === product.id ? { ...p, status: newStatus as 0 | 1 } : p));
-      if (statusFilter !== undefined) {
-        return updatedList.filter((p) => Number(p.status) === Number(statusFilter));
+    } catch (error: unknown) {
+      setProducts(previousProducts);
+      let message = 'Xóa sản phẩm thất bại.';
+      if (error instanceof AxiosError) {
+        const res = error.response?.data as ApiResponse | undefined;
+        if (res?.message) message = res.message;
       }
-      return updatedList;
-    });
-
-    try {
-      await updateProduct({ id: product.id, status: newStatus });
-    } catch (error: any) {
-      setProducts(previousProducts); // Rollback on error
-      alert(error?.response?.data?.message || 'Cập nhật trạng thái thất bại.');
+      alert(message);
     }
   };
 
@@ -159,7 +162,7 @@ function ProductsPage() {
         <button
           onClick={() => {
             setEditingProduct(null);
-            setModalOpen(true);
+            setIsModalOpen(true);
           }}
           className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
         >
@@ -206,9 +209,9 @@ function ProductsPage() {
         </div>
       </div>
 
-      {/* Table Section */}
+      {/* Products Table - UI: Sử dụng table-layout: fixed và colgroup theo chuẩn 3.1 */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-2">
             <Loader2 size={32} className="animate-spin text-blue-600" />
             <p className="text-sm font-medium">Đang tải dữ liệu sản phẩm...</p>
@@ -216,12 +219,23 @@ function ProductsPage() {
         ) : products.length === 0 ? (
           <div className="py-20 text-center text-slate-400">
             <Package size={48} className="mx-auto opacity-30 mb-2" />
-            <p className="text-base font-semibold text-slate-700 dark:text-slate-300">Không tìm thấy sản phẩm nào</p>
-            <p className="text-xs text-slate-500 mt-1">Thử thay đổi bộ lọc hoặc thêm sản phẩm mới</p>
+            <p className="text-base font-semibold text-slate-700 dark:text-slate-300">
+              Không tìm thấy sản phẩm nào
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Thử thay đổi bộ lọc hoặc thêm sản phẩm mới
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm table-fixed">
+              <colgroup>
+                <col className="w-[12%]" />
+                <col className="w-[38%]" />
+                <col className="w-[20%]" />
+                <col className="w-[15%]" />
+                <col className="w-[15%]" />
+              </colgroup>
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-xs uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
                 <tr>
                   <th className="px-6 py-3.5">Ảnh</th>
@@ -234,14 +248,21 @@ function ProductsPage() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                 {products.map((product) => {
                   const mediaList = getMediaList(product.media);
-                  const mainImage = mediaList.find((m) => m.is_main) || mediaList[0];
+                  const mainImage = mediaList.find((m) => m.id) || mediaList[0];
 
                   return (
-                    <tr key={product.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <tr
+                      key={product.id}
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                    >
                       <td className="px-6 py-4">
                         <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
                           {mainImage ? (
-                            <img src={mainImage.url} alt={product.name} className="w-full h-full object-cover" />
+                            <img
+                              src={mainImage.url}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
                             <ImageIcon size={20} className="text-slate-400" />
                           )}
@@ -249,26 +270,20 @@ function ProductsPage() {
                       </td>
 
                       <td className="px-6 py-4">
-                        <p className="font-bold text-slate-900 dark:text-slate-100 truncate max-w-xs">{product.name}</p>
+                        <p className="font-bold text-slate-900 dark:text-slate-100 truncate">
+                          {product.name}
+                        </p>
                         <p className="text-xs text-slate-400 font-mono mt-0.5">ID: {product.id}</p>
                       </td>
 
-                      <td className="px-6 py-4 font-semibold text-blue-600 dark:text-blue-400">
+                      <td className="px-6 py-4 font-semibold text-blue-600 dark:text-blue-400 font-mono">
                         {Number(product.price).toLocaleString('vi-VN')} đ
                       </td>
 
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleToggleStatus(product)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${
-                            product.status === 1
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-200'
-                          }`}
-                        >
-                          {product.status === 1 ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                          <span>{product.status === 1 ? 'Hoạt động' : 'Tạm ngưng'}</span>
-                        </button>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                          <CheckCircle2 size={12} /> Hoạt động
+                        </span>
                       </td>
 
                       <td className="px-6 py-4 text-right">
@@ -276,7 +291,7 @@ function ProductsPage() {
                           <button
                             onClick={() => {
                               setSelectedMediaProduct(product);
-                              setMediaModalOpen(true);
+                              setIsMediaModalOpen(true);
                             }}
                             className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg transition-colors"
                             title="Quản lý Media"
@@ -287,7 +302,7 @@ function ProductsPage() {
                           <button
                             onClick={() => {
                               setEditingProduct(product);
-                              setModalOpen(true);
+                              setIsModalOpen(true);
                             }}
                             className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
                             title="Chỉnh sửa"
@@ -340,21 +355,21 @@ function ProductsPage() {
 
       {/* Product Form Modal */}
       <ProductModal
-        isOpen={modalOpen}
+        isOpen={isModalOpen}
         onClose={() => {
-          setModalOpen(false);
+          setIsModalOpen(false);
           setEditingProduct(null);
         }}
         onSubmit={handleCreateOrUpdate}
         product={editingProduct}
-        isLoading={submitting}
+        isLoading={isSubmitting}
       />
 
       {/* Product Media Modal */}
       <ProductMediaModal
-        isOpen={mediaModalOpen}
+        isOpen={isMediaModalOpen}
         onClose={() => {
-          setMediaModalOpen(false);
+          setIsMediaModalOpen(false);
           setSelectedMediaProduct(null);
         }}
         product={selectedMediaProduct}

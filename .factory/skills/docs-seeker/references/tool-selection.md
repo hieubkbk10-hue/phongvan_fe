@@ -17,15 +17,15 @@ Need public docs?
 
 ## Tool choices
 
-| Need | Tool/approach | Notes |
-| --- | --- | --- |
-| Known repo/website docs | context7 `llms.txt` URL | First try for public libraries. |
-| Find official docs/repo | WebSearch | Use precise query, domain, version. |
-| Read user-provided URL | FetchUrl | Prefer exact doc pages, not broad homepages. |
-| Read discovered public page | WebSearch text or focused search | Do not bypass tool contracts with shell scraping. |
-| Read many independent URLs | Explorer agents | Batch by topic/source, max 5 first round. |
-| No structured docs | Worker/explorer agents | Require source verification and dates. |
-| Repo docs/code comments | Focused repo reads or Repomix | Include docs/README/examples, exclude binaries/build deps. |
+| Need                        | Tool/approach                    | Notes                                                      |
+| --------------------------- | -------------------------------- | ---------------------------------------------------------- |
+| Known repo/website docs     | context7 `llms.txt` URL          | First try for public libraries.                            |
+| Find official docs/repo     | WebSearch                        | Use precise query, domain, version.                        |
+| Read user-provided URL      | FetchUrl                         | Prefer exact doc pages, not broad homepages.               |
+| Read discovered public page | WebSearch text or focused search | Do not bypass tool contracts with shell scraping.          |
+| Read many independent URLs  | Explorer agents                  | Batch by topic/source, max 5 first round.                  |
+| No structured docs          | Worker/explorer agents           | Require source verification and dates.                     |
+| Repo docs/code comments     | Focused repo reads or Repomix    | Include docs/README/examples, exclude binaries/build deps. |
 
 ## context7 patterns
 

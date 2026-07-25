@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { Header } from '@/components/admin/Header';
+import { AppErrorBoundary } from '@/components/common/AppErrorBoundary';
 
 export const Route = createFileRoute('/admin')({
   component: AdminLayout,
@@ -10,9 +11,10 @@ export const Route = createFileRoute('/admin')({
 
 function AdminLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // UI: State quản lý menu hiển thị trên thiết bị di động tuân thủ is[Feature][State]
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Default strictly to Light Mode (false) unless localStorage explicitly has 'dark'
+  // UI: Khởi tạo giao diện sáng/tối từ localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('theme') === 'dark';
@@ -30,25 +32,27 @@ function AdminLayout() {
   };
 
   return (
-    <AdminAuthGuard>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex font-sans transition-colors">
-        <Sidebar
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          mobileMenuOpen={mobileMenuOpen}
-          setMobileMenuOpen={setMobileMenuOpen}
-        />
-        <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
-          <Header
-            isDarkMode={isDarkMode}
-            toggleTheme={toggleTheme}
-            setMobileMenuOpen={setMobileMenuOpen}
+    <AppErrorBoundary>
+      <AdminAuthGuard>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex font-sans transition-colors">
+          <Sidebar
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            mobileMenuOpen={isMobileMenuOpen}
+            setMobileMenuOpen={setIsMobileMenuOpen}
           />
-          <main className="flex-1 p-4 lg:p-8 overflow-x-hidden w-full max-w-[1600px] mx-auto">
-            <Outlet />
-          </main>
+          <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
+            <Header
+              isDarkMode={isDarkMode}
+              toggleTheme={toggleTheme}
+              setMobileMenuOpen={setIsMobileMenuOpen}
+            />
+            <main className="flex-1 p-4 lg:p-8 overflow-x-hidden w-full max-w-[1600px] mx-auto">
+              <Outlet />
+            </main>
+          </div>
         </div>
-      </div>
-    </AdminAuthGuard>
+      </AdminAuthGuard>
+    </AppErrorBoundary>
   );
 }

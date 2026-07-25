@@ -18,14 +18,14 @@ Không tự mở rộng sang nghiệp vụ không phục vụ trực tiếp cho 
 
 ## 2. Phân loại dependency
 
-| Loại | Xử lý |
-| --- | --- |
-| Compile dependency | Tạo trước khi class khác import hoặc type-hint |
-| Schema dependency | Chốt Model/table trước Migration/FK/validation |
-| Business dependency | Phải có đủ field/invariant feature sử dụng, không tạo model rỗng |
-| Cross-container contract | Chốt owner, IDs, permission, relation và response trước integration |
-| Runtime dependency | Queue worker, scheduler, storage, provider, config/env phải có phase riêng |
-| Future dependency | Không code sẵn; ghi extension point nếu chưa cần cho A' |
+| Loại                     | Xử lý                                                                      |
+| ------------------------ | -------------------------------------------------------------------------- |
+| Compile dependency       | Tạo trước khi class khác import hoặc type-hint                             |
+| Schema dependency        | Chốt Model/table trước Migration/FK/validation                             |
+| Business dependency      | Phải có đủ field/invariant feature sử dụng, không tạo model rỗng           |
+| Cross-container contract | Chốt owner, IDs, permission, relation và response trước integration        |
+| Runtime dependency       | Queue worker, scheduler, storage, provider, config/env phải có phase riêng |
+| Future dependency        | Không code sẵn; ghi extension point nếu chưa cần cho A'                    |
 
 ## 3. Thuật toán đóng scope
 
@@ -150,13 +150,13 @@ D -> C -> B -> A
 
 Mỗi task phân loại:
 
-| Loại thay đổi | Rollback bắt buộc |
-| --- | --- |
-| Code/config | Revert exact task commit hoặc restore exact files |
-| Migration schema | Exact migration path, rollback command và schema assertion |
-| Data migration/backfill | Backup/precondition, reverse transform hoặc đánh dấu irreversible |
-| File/storage | Xóa file mới hoặc phục hồi file cũ theo transaction state |
-| Queue/runtime | Dừng producer trước consumer, drain/cancel jobs, revert worker/config |
-| Permissions/seed | Revoke đúng permission/seeded rows, không xóa dữ liệu ngoài scope |
+| Loại thay đổi           | Rollback bắt buộc                                                     |
+| ----------------------- | --------------------------------------------------------------------- |
+| Code/config             | Revert exact task commit hoặc restore exact files                     |
+| Migration schema        | Exact migration path, rollback command và schema assertion            |
+| Data migration/backfill | Backup/precondition, reverse transform hoặc đánh dấu irreversible     |
+| File/storage            | Xóa file mới hoặc phục hồi file cũ theo transaction state             |
+| Queue/runtime           | Dừng producer trước consumer, drain/cancel jobs, revert worker/config |
+| Permissions/seed        | Revoke đúng permission/seeded rows, không xóa dữ liệu ngoài scope     |
 
 Không gọi rollback “an toàn” nếu có thể mất dữ liệu. Trường hợp irreversible phải ghi stop condition, backup requirement và recovery procedure.

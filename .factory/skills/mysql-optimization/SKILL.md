@@ -11,11 +11,11 @@ Tài liệu hướng dẫn quy chuẩn và kỹ thuật tối ưu hóa MySQL cho
 
 ## ⚡ 1. Quy Tắc Nhanh (Quick Checklist)
 
-- 🚫 **Không dùng `SELECT *`**: Luôn chọn chính xác danh sách cột cần thiết để tận dụng *Covering Index* và giảm băng thông CPU/RAM.
+- 🚫 **Không dùng `SELECT *`**: Luôn chọn chính xác danh sách cột cần thiết để tận dụng _Covering Index_ và giảm băng thông CPU/RAM.
 - 🚫 **Tránh N+1 Query**: Luôn Eager Load mối quan hệ (`with([...])`) ở tầng Task/Repository.
-- 🚫 **Không dùng OFFSET lớn**: Với trang lớn (`LIMIT 500000, 20`), sử dụng *Deferred Join* hoặc *Keyset Pagination*.
+- 🚫 **Không dùng OFFSET lớn**: Với trang lớn (`LIMIT 500000, 20`), sử dụng _Deferred Join_ hoặc _Keyset Pagination_.
 - 🛡️ **Bắt buộc `NOT NULL`**: Đặt `NOT NULL` và giá trị mặc định cho cột trừ khi bắt buộc cần logic `NULL`.
-- 🔑 **Thứ tự Composite Index**: Đặt cột so sánh bằng (`=`) lên trước -> Cột có *Selectivity* cao -> Cột so sánh khoảng (`>`, `<`, `BETWEEN`, `LIKE`) ở cuối cùng.
+- 🔑 **Thứ tự Composite Index**: Đặt cột so sánh bằng (`=`) lên trước -> Cột có _Selectivity_ cao -> Cột so sánh khoảng (`>`, `<`, `BETWEEN`, `LIKE`) ở cuối cùng.
 - ⏳ **Transaction Ngắn**: Không thực hiện API call ngoài, upload file hay gửi email bên trong `DB::transaction(...)`.
 
 ---
@@ -24,7 +24,7 @@ Tài liệu hướng dẫn quy chuẩn và kỹ thuật tối ưu hóa MySQL cho
 
 1. **Kiểu dữ liệu nhỏ nhất có thể**:
    - Dùng `TINYINT` cho status/type thay vì `INT` hoặc `VARCHAR`.
-   - Dùng `BIGINT AUTO_INCREMENT` hoặc `UUID v7` (Ordered UUID) làm Primary Key. Tránh UUID v4 (ngẫu nhiên) gây *Page Splits* trên InnoDB Clustered Index.
+   - Dùng `BIGINT AUTO_INCREMENT` hoặc `UUID v7` (Ordered UUID) làm Primary Key. Tránh UUID v4 (ngẫu nhiên) gây _Page Splits_ trên InnoDB Clustered Index.
    - Lưu IP bằng `INT UNSIGNED` kết hợp `INET_ATON()` / `INET_NTOA()`.
 2. **Virtual / Stored Generated Columns & Multi-Valued Indexes**:
    - Tránh bọc cột bằng hàm trong `WHERE`. Dùng Virtual Generated Column để lập chỉ mục cho biểu thức hoặc trường JSON.
@@ -42,8 +42,8 @@ Chi tiết nguyên lý & so sánh: [Schema, Types & Functional Indexes Reference
 2. **Quy tắc Tiền Tố Trái Nhất (Leftmost Prefix Rule)**:
    - Phép so sánh phạm vi (`>`, `<`, `BETWEEN`, `LIKE 'abc%'`) trên cột `A` sẽ **ngắt** khả năng dùng chỉ mục của các cột phía sau.
 3. **Partitioning & Full-Text Search (FTS)**:
-   - Partitioning đóng vai trò là *Coarse Indexing*. Không dùng cho bảng có nhiều Secondary Indexes không chứa Partition Key.
-   - FTS sử dụng *Inverted Index*. Chuyển sang Sphinx/Elasticsearch khi dữ liệu đạt hàng trăm triệu dòng hoặc cần phân trang/tìm kiếm phân tán.
+   - Partitioning đóng vai trò là _Coarse Indexing_. Không dùng cho bảng có nhiều Secondary Indexes không chứa Partition Key.
+   - FTS sử dụng _Inverted Index_. Chuyển sang Sphinx/Elasticsearch khi dữ liệu đạt hàng trăm triệu dòng hoặc cần phân trang/tìm kiếm phân tán.
 
 Chi tiết nguyên lý & Hệ thống 3-Sao: [Indexing Mechanics Reference](references/indexing_mechanics.md)
 
@@ -64,7 +64,7 @@ Chi tiết nguyên lý & Hệ thống 3-Sao: [Indexing Mechanics Reference](refe
        ->get(['posts.id', 'posts.title', 'posts.content', 'posts.created_at']);
    ```
 2. **Refactor `ORDER BY RAND()` & `IN()` lớn**:
-   - Dùng *PK Range Sampling* ($O(\log n)$) hoặc *Deferred Join* cho `ORDER BY RAND()`.
+   - Dùng _PK Range Sampling_ ($O(\log n)$) hoặc _Deferred Join_ cho `ORDER BY RAND()`.
    - Với danh sách `IN()` > 1,000 phần tử, refactor sang JOIN bảng tạm có `PRIMARY KEY`.
 3. **Đánh Giá EXPLAIN & Optimizer Hints**:
    - `type`: `const` > `eq_ref` > `ref` > `range` > `index` > `ALL` (Full Table Scan 🚨).

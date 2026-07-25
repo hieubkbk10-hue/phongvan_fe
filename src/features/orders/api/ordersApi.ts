@@ -1,8 +1,15 @@
 import { apiClient } from '@/lib/api-client';
-import type { Order, OrderListParams, CreateOrderInput, CompleteOrderInput, CancelOrderInput } from '../types';
+import type {
+  Order,
+  OrderListParams,
+  CreateOrderInput,
+  CompleteOrderInput,
+  CancelOrderInput,
+} from '@/types';
 
+// LOGIC: Lấy danh sách đơn hàng có phân trang từ API
 export const getOrders = async (params?: OrderListParams) => {
-  const queryParams: Record<string, any> = {
+  const queryParams: Record<string, string | number> = {
     page: params?.page || 1,
     limit: params?.limit || 15,
     include: 'items,customer',
@@ -25,7 +32,15 @@ export const getOrders = async (params?: OrderListParams) => {
 
   const response = await apiClient.get<{
     data: Order[];
-    meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } };
+    meta?: {
+      pagination?: {
+        total: number;
+        count: number;
+        per_page: number;
+        current_page: number;
+        total_pages: number;
+      };
+    };
   }>('/orders', {
     params: queryParams,
   });

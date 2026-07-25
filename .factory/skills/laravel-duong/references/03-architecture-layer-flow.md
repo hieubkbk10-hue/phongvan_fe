@@ -20,17 +20,17 @@ Thực tế repo:
 
 ## 3.2) Layer boundary
 
-| Layer | Được làm | Không làm |
-| --- | --- | --- |
-| Route | URI, HTTP verb, middleware, `@api` docs | business/query |
-| Request | validate, authorize access, decode URL id | ownership sâu |
-| Controller | nhận Request, gọi Action, trả response | orchestration |
-| Action | `sanitizeInput()`, gán field server-owned | query/mutate nặng |
-| Task | use case, transaction, repository, relation sync | nhận Request object |
-| Repository | query surface, criteria, pagination | business rule ẩn |
-| Model | relation, cast, permission, lifecycle domain hook | gọi HTTP/request phức tạp |
-| Transformer | public JSON shape, include, permission flags | query nặng trong collection |
-| Listener/Job | side effect, cascade, async cleanup | core write bắt buộc nếu cần consistency ngay |
+| Layer        | Được làm                                          | Không làm                                    |
+| ------------ | ------------------------------------------------- | -------------------------------------------- |
+| Route        | URI, HTTP verb, middleware, `@api` docs           | business/query                               |
+| Request      | validate, authorize access, decode URL id         | ownership sâu                                |
+| Controller   | nhận Request, gọi Action, trả response            | orchestration                                |
+| Action       | `sanitizeInput()`, gán field server-owned         | query/mutate nặng                            |
+| Task         | use case, transaction, repository, relation sync  | nhận Request object                          |
+| Repository   | query surface, criteria, pagination               | business rule ẩn                             |
+| Model        | relation, cast, permission, lifecycle domain hook | gọi HTTP/request phức tạp                    |
+| Transformer  | public JSON shape, include, permission flags      | query nặng trong collection                  |
+| Listener/Job | side effect, cascade, async cleanup               | core write bắt buộc nếu cần consistency ngay |
 
 ## 3.3) Write flow chuẩn
 

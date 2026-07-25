@@ -65,12 +65,12 @@ Best for: upgrade questions and breaking changes.
 
 ## Agent distribution
 
-| Input size | Approach |
-| --- | --- |
-| 1-3 pages | Read directly or one explorer. |
-| 4-10 pages | 2-4 explorers by topic/source. |
-| 11+ pages | First batch max 5 explorers on highest-value pages. |
-| Huge repo | One explorer for structure, then focused follow-up. |
+| Input size | Approach                                            |
+| ---------- | --------------------------------------------------- |
+| 1-3 pages  | Read directly or one explorer.                      |
+| 4-10 pages | 2-4 explorers by topic/source.                      |
+| 11+ pages  | First batch max 5 explorers on highest-value pages. |
+| Huge repo  | One explorer for structure, then focused follow-up. |
 
 Agent prompt must include:
 
@@ -82,13 +82,13 @@ Agent prompt must include:
 
 ## Common pitfalls
 
-| Pitfall | Avoid by |
-| --- | --- |
-| Over-parallelization | Cap first batch, merge before launching more. |
-| Duplicate reads | Assign non-overlapping topics. |
-| Poor source quality | Prioritize official/versioned sources. |
-| No caveats | State private, stale, conflicting, or untested areas. |
-| Link dump | Synthesize answer first, sources second. |
+| Pitfall              | Avoid by                                              |
+| -------------------- | ----------------------------------------------------- |
+| Over-parallelization | Cap first batch, merge before launching more.         |
+| Duplicate reads      | Assign non-overlapping topics.                        |
+| Poor source quality  | Prioritize official/versioned sources.                |
+| No caveats           | State private, stale, conflicting, or untested areas. |
+| Link dump            | Synthesize answer first, sources second.              |
 
 ## Output templates
 
@@ -96,12 +96,15 @@ Agent prompt must include:
 
 ```md
 ## Answer
+
 [direct answer]
 
 ## Source
+
 - [Official docs](url), version/date
 
 ## Note
+
 [caveat if any]
 ```
 
@@ -109,16 +112,20 @@ Agent prompt must include:
 
 ```md
 ## Finding
+
 [conclusion]
 
 ## Evidence
+
 - [source 1]
 - [source 2]
 
 ## Gaps
+
 [missing/private/conflicting info]
 
 ## Next step
+
 [command, code path, or verification]
 ```
 
@@ -126,15 +133,19 @@ Agent prompt must include:
 
 ```md
 ## Old behavior
+
 ...
 
 ## New behavior
+
 ...
 
 ## What to change
+
 1. ...
 2. ...
 
 ## Caveats
+
 ...
 ```

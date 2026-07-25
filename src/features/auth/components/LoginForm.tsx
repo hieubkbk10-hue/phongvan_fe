@@ -2,17 +2,18 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { AxiosError } from 'axios';
 
-import { loginSchema } from '../types';
-import type { LoginPayload } from '../types';
+import { loginSchema } from '@/types';
+import type { LoginPayload, ApiResponse } from '@/types';
 import { useLogin } from '../api/useLogin';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import { Input, Button } from '@/components/ui';
 
 interface LoginFormProps {
   onSuccess?: () => void;
 }
 
+// LOGIC: Component LoginForm xử lý đăng nhập hệ thống với validation Zod không dùng any
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const { mutate: login, isPending, error: apiError } = useLogin();
 
@@ -25,7 +26,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     defaultValues: {
       email: '',
       password: '',
-      remember: false,
     },
   });
 
@@ -37,14 +37,25 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     });
   };
 
+  const getErrorMessage = () => {
+    if (!apiError) return null;
+    if (apiError instanceof AxiosError) {
+      const responseData = apiError.response?.data as ApiResponse | undefined;
+      return (
+        responseData?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.'
+      );
+    }
+    return 'Đăng nhập thất bại. Vui lòng thử lại.';
+  };
+
+  const errorMessage = getErrorMessage();
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {apiError && (
+      {errorMessage && (
         <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex items-start gap-2.5 text-rose-600 dark:text-rose-400 text-xs font-medium">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>
-            {(apiError as any)?.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.'}
-          </span>
+          <span>{errorMessage}</span>
         </div>
       )}
 
@@ -66,27 +77,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         {...register('password')}
       />
 
-      <div className="flex items-center justify-between text-xs font-medium">
-        <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-400">
-          <input
-            type="checkbox"
-            className="rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500/30"
-            {...register('remember')}
-          />
-          <span>Ghi nhớ đăng nhập</span>
-        </label>
-        <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">
-          Quên mật khẩu?
-        </a>
-      </div>
-
       <Button
         type="submit"
-        className="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-md transition-all"
-        isLoading={isPending}
-        rightIcon={<LogIn className="w-4 h-4" />}
+        className="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-md transition-all flex items-center justify-center gap-2"
+        disabled={isPending}
       >
-        Đăng nhập CMS
+        <span>{isPending ? 'Đang xử lý...' : 'Đăng nhập CMS'}</span>
+        <LogIn className="w-4 h-4" />
       </Button>
     </form>
   );

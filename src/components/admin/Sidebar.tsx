@@ -65,9 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`fixed lg:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 transition-all duration-300 ease-in-out flex flex-col shadow-lg lg:shadow-none ${
           isCollapsed ? 'lg:w-[80px]' : 'lg:w-[260px]'
-        } ${
-          mobileMenuOpen ? 'translate-x-0 w-[260px]' : '-translate-x-full lg:translate-x-0'
-        }`}
+        } ${mobileMenuOpen ? 'translate-x-0 w-[260px]' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Brand Header */}
         <div

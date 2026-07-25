@@ -23,14 +23,14 @@ Find technical docs with a clear source route, freshness check, and citation con
 
 ### 1. Request route
 
-| User asks for | Required route |
-| --- | --- |
-| Latest docs for a library/framework | Official current docs plus release/version check |
-| Specific version | Versioned docs, tag, branch, changelog, or package version |
-| `llms.txt` docs | Context7 pattern, official `/llms.txt`, then official docs |
-| GitHub README or package comparison | Official docs and repo README are both mandatory |
-| Migration or behavior difference | Old docs, new docs, migration guide, release notes |
-| Sparse docs or unknown project | Official site, repo docs, package registry, then broader search |
+| User asks for                       | Required route                                                  |
+| ----------------------------------- | --------------------------------------------------------------- |
+| Latest docs for a library/framework | Official current docs plus release/version check                |
+| Specific version                    | Versioned docs, tag, branch, changelog, or package version      |
+| `llms.txt` docs                     | Context7 pattern, official `/llms.txt`, then official docs      |
+| GitHub README or package comparison | Official docs and repo README are both mandatory                |
+| Migration or behavior difference    | Old docs, new docs, migration guide, release notes              |
+| Sparse docs or unknown project      | Official site, repo docs, package registry, then broader search |
 
 ### 2. Source confidence route
 
@@ -47,13 +47,13 @@ When sources conflict, prefer the higher tier and mention the conflict.
 
 ### 3. Volume route
 
-| Input size | Approach |
-| --- | --- |
-| 1-3 small pages | Read directly. No subagent unless source is complex. |
-| 4-10 independent pages | Use 2-4 explorers by topic/source. |
-| 11+ pages | First batch max 5 explorers on highest-value pages. Aggregate before launching more. |
-| Huge GitHub repo | Explore structure first, then read README/docs/examples. Use Repomix only if focused reads are insufficient. |
-| Multi-version comparison | Split by version/source so findings do not mix. |
+| Input size               | Approach                                                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| 1-3 small pages          | Read directly. No subagent unless source is complex.                                                         |
+| 4-10 independent pages   | Use 2-4 explorers by topic/source.                                                                           |
+| 11+ pages                | First batch max 5 explorers on highest-value pages. Aggregate before launching more.                         |
+| Huge GitHub repo         | Explore structure first, then read README/docs/examples. Use Repomix only if focused reads are insufficient. |
+| Multi-version comparison | Split by version/source so findings do not mix.                                                              |
 
 ## Workflow
 
@@ -98,30 +98,34 @@ When sources conflict, prefer the higher tier and mention the conflict.
 
 ## Tool selection
 
-| Need | Tool/pattern |
-| --- | --- |
-| Find public docs, repos, release notes | `WebSearch` |
-| Fetch user-provided public URL | `FetchUrl` |
-| Explore many local/project files | `Glob`, `Grep`, `Read` |
-| Split broad reading | `Task` explorer with non-overlapping source assignments |
-| Analyze a huge public repo | Focused repo docs first, Repomix only if needed |
-| Verify current date relevance | Current system date |
+| Need                                   | Tool/pattern                                            |
+| -------------------------------------- | ------------------------------------------------------- |
+| Find public docs, repos, release notes | `WebSearch`                                             |
+| Fetch user-provided public URL         | `FetchUrl`                                              |
+| Explore many local/project files       | `Glob`, `Grep`, `Read`                                  |
+| Split broad reading                    | `Task` explorer with non-overlapping source assignments |
+| Analyze a huge public repo             | Focused repo docs first, Repomix only if needed         |
+| Verify current date relevance          | Current system date                                     |
 
 ## Output format
 
 ```markdown
 ## Answer
+
 [Direct answer]
 
 ## Evidence
-| Claim | Source | Version/date |
-| --- | --- | --- |
-| ... | URL + section/title | ... |
+
+| Claim | Source              | Version/date |
+| ----- | ------------------- | ------------ |
+| ...   | URL + section/title | ...          |
 
 ## Comparison
+
 [Only if multiple sources were required]
 
 ## Caveats
+
 - [Missing version, stale source risk, conflict, or unsupported area]
 ```
 

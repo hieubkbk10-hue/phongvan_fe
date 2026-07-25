@@ -9,25 +9,25 @@ interface HeaderProps {
   setMobileMenuOpen: (open: boolean) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  isDarkMode,
-  toggleTheme,
-  setMobileMenuOpen,
-}) => {
+export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, setMobileMenuOpen }) => {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // UI: Biến state quản lý trạng thái đóng/mở dropdown thông tin cá nhân tuân thủ is[Feature][State]
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
+  // QUYỀN: Thực hiện đăng xuất tài khoản người dùng và xóa token
   const handleLogout = () => {
     logout();
     navigate({ to: '/auth/login' });
   };
 
+  // UI: Tự động đóng dropdown khi người dùng nhấp chuột ra phía ngoài khu vực hiển thị
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
+        setIsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -91,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* User Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => setDropdownOpen((prev) => !prev)}
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
             className="flex items-center gap-3 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
           >
             <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-semibold text-xs flex items-center justify-center shadow-xs">
@@ -107,17 +107,21 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </button>
 
-          {/* Dropdown Menu */}
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg py-1.5 z-50 text-sm">
+          {/* UI: Phân lớp Z-Index cố định z-[1000] cho Dropdown Menu theo quy chuẩn 3.3 */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg py-1.5 z-[1000] text-sm">
               <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{displayName}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{displayEmail}</p>
+                <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">
+                  {displayName}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                  {displayEmail}
+                </p>
               </div>
 
               <Link
                 to="/admin/users"
-                onClick={() => setDropdownOpen(false)}
+                onClick={() => setIsDropdownOpen(false)}
                 className="flex items-center gap-2.5 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <User size={16} />

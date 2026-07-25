@@ -30,12 +30,20 @@ export const SoketiStatusCard: React.FC = () => {
             </h3>
             <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
               <Server className="w-3.5 h-3.5 text-slate-500" />
-              VPS Host: <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">{soketiHost}:{soketiPort}</code>
+              VPS Host:{' '}
+              <code className="text-slate-300 bg-slate-800 px-1 py-0.5 rounded">
+                {soketiHost}:{soketiPort}
+              </code>
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={clearLogs} leftIcon={<Trash2 className="w-3.5 h-3.5" />}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearLogs}
+            leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+          >
             Clear
           </Button>
         </div>
@@ -74,16 +82,23 @@ export const SoketiStatusCard: React.FC = () => {
         <div className="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs max-h-48 overflow-y-auto space-y-2">
           {logs.length === 0 ? (
             <div className="py-6 text-center text-slate-600 italic">
-              No websocket broadcasts received yet on "<span className="text-slate-400">{channel}</span>". Dispatch an event from Laravel to test live stream.
+              No websocket broadcasts received yet on "
+              <span className="text-slate-400">{channel}</span>". Dispatch an event from Laravel to
+              test live stream.
             </div>
           ) : (
             logs.map((log) => (
-              <div key={log.id} className="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-300">
+              <div
+                key={log.id}
+                className="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-300"
+              >
                 <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1 border-b border-slate-800/60 pb-1">
                   <span className="text-indigo-400 font-bold">{log.event}</span>
                   <span>{log.timestamp}</span>
                 </div>
-                <pre className="text-slate-300 overflow-x-auto whitespace-pre-wrap">{JSON.stringify(log.payload, null, 2)}</pre>
+                <pre className="text-slate-300 overflow-x-auto whitespace-pre-wrap">
+                  {JSON.stringify(log.payload, null, 2)}
+                </pre>
               </div>
             ))
           )}

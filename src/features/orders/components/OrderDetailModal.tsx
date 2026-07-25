@@ -1,15 +1,42 @@
 import React from 'react';
-import { X, ShoppingCart, User, Phone, MapPin, Calendar, Truck, Building2, Clock, CheckCircle2, XCircle, Package, AlertCircle } from 'lucide-react';
-import type { Order, OrderStatus } from '../types';
+import {
+  X,
+  ShoppingCart,
+  User,
+  Phone,
+  MapPin,
+  Calendar,
+  Truck,
+  Building2,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Package,
+  AlertCircle,
+} from 'lucide-react';
+import type { Order, OrderStatus } from '@/types';
+
+interface ExtendedOrder extends Order {
+  customer_name_snapshot?: string;
+  customer_phone_snapshot?: string;
+  customer_address_snapshot?: string;
+  shipping_carrier?: string;
+  delivery_date?: string;
+  subtotal?: number;
+  shipping_fee?: number;
+  advance_payment?: number;
+  remaining_amount?: number;
+}
 
 interface OrderDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order: Order | null;
+  order: ExtendedOrder | null;
   onOpenComplete?: (order: Order) => void;
   onOpenCancel?: (order: Order) => void;
 }
 
+// UI: OrderDetailModal hiển thị chi tiết đơn hàng với Z-Index cố định z-[10000] theo chuẩn 3.3
 export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   isOpen,
   onClose,
@@ -44,7 +71,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     }
   };
 
-  const getPaymentMethodName = (method: number) => {
+  const getPaymentMethodName = (method?: number) => {
     switch (Number(method)) {
       case 1:
         return 'Ship COD (Giao hàng thu tiền)';
@@ -60,7 +87,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
@@ -76,7 +103,8 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 {renderStatusBadge(order.status)}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Ngày khởi tạo: {order.created_at ? new Date(order.created_at).toLocaleString('vi-VN') : 'N/A'}
+                Ngày khởi tạo:{' '}
+                {order.created_at ? new Date(order.created_at).toLocaleString('vi-VN') : 'N/A'}
               </p>
             </div>
           </div>
@@ -96,14 +124,18 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             {/* Customer Box */}
             <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-700/60 pb-2">
-                <User size={14} className="text-amber-500" /> Thông tin Khách hàng Snapshot
+                <User size={14} className="text-amber-500" /> Thông tin Khách hàng
               </h4>
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">{order.customer_name_snapshot}</p>
+              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                {order.customer_name_snapshot || order.customer_name}
+              </p>
               <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5 font-mono">
-                <Phone size={12} className="text-slate-400" /> {order.customer_phone_snapshot}
+                <Phone size={12} className="text-slate-400" />{' '}
+                {order.customer_phone_snapshot || order.customer_phone || 'Chưa cập nhật'}
               </p>
               <p className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-1.5">
-                <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" /> {order.customer_address_snapshot || 'Chưa cung cấp địa chỉ'}
+                <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />{' '}
+                {order.customer_address_snapshot || 'Chưa cung cấp địa chỉ'}
               </p>
             </div>
 
@@ -114,12 +146,17 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               </h4>
               <p className="text-xs text-slate-700 dark:text-slate-300">
                 <span className="font-bold text-slate-500">Phương thức:</span>{' '}
-                <span className="font-semibold text-amber-600 dark:text-amber-400">{getPaymentMethodName(order.payment_method)}</span>
+                <span className="font-semibold text-amber-600 dark:text-amber-400">
+                  {getPaymentMethodName(order.payment_method)}
+                </span>
               </p>
 
               {Number(order.payment_method) === 3 && order.bank_name && (
                 <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                  <Building2 size={12} className="text-slate-400" /> {order.bank_name} - <span className="font-mono font-bold text-slate-900 dark:text-slate-100">{order.bank_account_number}</span>
+                  <Building2 size={12} className="text-slate-400" /> {order.bank_name} -{' '}
+                  <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                    {order.bank_account_number}
+                  </span>
                 </p>
               )}
 
@@ -149,11 +186,12 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           {/* Items Table */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Package size={14} className="text-amber-500" /> Danh sách sản phẩm trong đơn ({order.items?.length || 0})
+              <Package size={14} className="text-amber-500" /> Danh sách sản phẩm trong đơn (
+              {order.items?.length || 0})
             </h4>
 
             <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs table-fixed">
                 <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold uppercase">
                   <tr>
                     <th className="px-4 py-2.5">Sản phẩm</th>
@@ -165,25 +203,24 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                   {order.items && order.items.length > 0 ? (
                     order.items.map((item, idx) => (
-                      <tr key={item.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <tr
+                        key={item.id || idx}
+                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
+                      >
                         <td className="px-4 py-3">
                           <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                            {item.product_name_snapshot}
+                            {item.product_name}
                           </p>
-                          {item.price_override_reason && (
-                            <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                              Lý do ghi đè giá: {item.price_override_reason}
-                            </p>
-                          )}
                         </td>
                         <td className="px-4 py-3 text-right font-mono">
                           {Number(item.unit_price).toLocaleString('vi-VN')} đ
                         </td>
-                        <td className="px-4 py-3 text-center font-bold">
-                          {item.quantity}
-                        </td>
+                        <td className="px-4 py-3 text-center font-bold">{item.quantity}</td>
                         <td className="px-4 py-3 text-right font-bold font-mono text-slate-900 dark:text-slate-100">
-                          {Number(item.total_item_price || Number(item.unit_price) * item.quantity).toLocaleString('vi-VN')} đ
+                          {Number(
+                            item.subtotal || Number(item.unit_price) * item.quantity
+                          ).toLocaleString('vi-VN')}{' '}
+                          đ
                         </td>
                       </tr>
                     ))
@@ -203,23 +240,21 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 max-w-sm ml-auto space-y-2 text-xs">
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
               <span>Tạm tính (Subtotal):</span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">{Number(order.subtotal).toLocaleString('vi-VN')} đ</span>
+              <span className="font-semibold text-slate-900 dark:text-slate-100">
+                {Number(order.subtotal || order.total_amount).toLocaleString('vi-VN')} đ
+              </span>
             </div>
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
               <span>Phí vận chuyển:</span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">{Number(order.shipping_fee).toLocaleString('vi-VN')} đ</span>
+              <span className="font-semibold text-slate-900 dark:text-slate-100">
+                {Number(order.shipping_fee || 0).toLocaleString('vi-VN')} đ
+              </span>
             </div>
             <div className="border-t border-slate-200 dark:border-slate-700/60 pt-2 flex justify-between font-bold text-sm text-slate-900 dark:text-slate-100">
               <span>Tổng cộng đơn hàng:</span>
-              <span className="text-amber-600 dark:text-amber-400">{Number(order.total_amount).toLocaleString('vi-VN')} đ</span>
-            </div>
-            <div className="flex justify-between text-slate-500">
-              <span>Đã cọc (Advance):</span>
-              <span className="font-semibold">{Number(order.advance_payment).toLocaleString('vi-VN')} đ</span>
-            </div>
-            <div className="flex justify-between font-bold text-xs text-rose-600 dark:text-rose-400 border-t border-dashed border-slate-200 dark:border-slate-700 pt-1.5">
-              <span>Còn lại phải thu:</span>
-              <span>{Number(order.remaining_amount).toLocaleString('vi-VN')} đ</span>
+              <span className="text-amber-600 dark:text-amber-400">
+                {Number(order.total_amount).toLocaleString('vi-VN')} đ
+              </span>
             </div>
           </div>
         </div>
@@ -227,6 +262,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
         {/* Footer Actions */}
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {/* IMPORTANT: Chuyển tiếp sequential modal transition chuẩn theo 3.3 */}
             {Number(order.status) === 1 && onOpenComplete && (
               <button
                 onClick={() => {

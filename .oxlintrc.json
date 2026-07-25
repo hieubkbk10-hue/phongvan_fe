@@ -5,8 +5,11 @@
     "correctness": "error"
   },
   "rules": {
-    "react/only-export-components": "off",
+    "typescript/no-explicit-any": "error",
+    "no-constant-binary-expression": "error",
     "no-unused-vars": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "react/only-export-components": "off"
   }
 }

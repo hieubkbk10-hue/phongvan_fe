@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint --deny-warnings",
+    "format": "prettier --write .",
     "preview": "vite preview",
     "soketi": "npx @soketi/soketi start",
     "prepare": "husky"
@@ -25,6 +26,7 @@
     "pusher-js": "^8.5.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-error-boundary": "^5.0.0",
     "react-hook-form": "^7.82.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
@@ -32,6 +34,8 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
     "@tanstack/router-devtools": "^1.167.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
@@ -39,6 +43,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "husky": "^9.1.7",
     "oxlint": "^1.71.0",
+    "prettier": "^3.5.0",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"
   }

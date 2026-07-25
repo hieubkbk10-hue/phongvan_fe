@@ -6,12 +6,12 @@ Reference này ghi lại các pattern tốt đã quan sát trong Authentication,
 
 Trước khi sửa Authentication, tách rõ:
 
-| Concern | Câu hỏi |
-| --- | --- |
-| Authentication | Ai đang gọi hệ thống? |
-| OAuth client | Ứng dụng web/mobile/server nào đang xin token? |
-| Authorization | User/client có quyền gọi endpoint không? |
-| Domain permission | User có quyền trên resource cụ thể không? |
+| Concern           | Câu hỏi                                           |
+| ----------------- | ------------------------------------------------- |
+| Authentication    | Ai đang gọi hệ thống?                             |
+| OAuth client      | Ứng dụng web/mobile/server nào đang xin token?    |
+| Authorization     | User/client có quyền gọi endpoint không?          |
+| Domain permission | User có quyền trên resource cụ thể không?         |
 | Session lifecycle | Token nào được cấp, refresh, revoke hoặc hết hạn? |
 
 Tư duy Dương không bắt đầu từ “viết endpoint login”, mà bắt đầu từ contract:
@@ -517,21 +517,21 @@ Evidence:
 
 ## 7.15. Layer decision table
 
-| Logic | Layer |
-| --- | --- |
-| Validation login/password/callback URL | Request |
-| Chọn configured login attribute | `LoginCustomAttribute` |
-| OAuth payload enrichment | Action |
-| Gọi Passport token endpoint | Task |
-| Tạo refresh cookie | Task |
-| Revoke current token | Action hoặc dedicated Task theo pattern gần nhất |
-| Revoke all-device tokens | Domain method/Task có tên explicit |
-| Chọn social provider | SubAction |
-| Provider-specific OAuth call | Provider adapter |
-| Find/create/update social User | Tasks |
-| Public User response | Transformer |
-| User active state | Model/source of truth và auth middleware |
-| Generate & verify OTP | Actions & Tasks |
+| Logic                                  | Layer                                            |
+| -------------------------------------- | ------------------------------------------------ |
+| Validation login/password/callback URL | Request                                          |
+| Chọn configured login attribute        | `LoginCustomAttribute`                           |
+| OAuth payload enrichment               | Action                                           |
+| Gọi Passport token endpoint            | Task                                             |
+| Tạo refresh cookie                     | Task                                             |
+| Revoke current token                   | Action hoặc dedicated Task theo pattern gần nhất |
+| Revoke all-device tokens               | Domain method/Task có tên explicit               |
+| Chọn social provider                   | SubAction                                        |
+| Provider-specific OAuth call           | Provider adapter                                 |
+| Find/create/update social User         | Tasks                                            |
+| Public User response                   | Transformer                                      |
+| User active state                      | Model/source of truth và auth middleware         |
+| Generate & verify OTP                  | Actions & Tasks                                  |
 
 ## 7.16. OTP Generation & Verification Patterns
 
@@ -592,34 +592,34 @@ Các nguyên tắc:
 
 ## 7.17. Testing matrix
 
-| Flow | Cases |
-| --- | --- |
-| Login | email, phone, case normalization, invalid credentials, disabled user |
-| Proxy | client credentials đến từ config, OAuth failure mapping |
-| Refresh | body token, cookie token, invalid token, stable cookie response |
-| Logout current | access token và linked refresh token bị revoke |
-| Logout all devices | tất cả access/refresh tokens của User bị revoke |
-| Forgot password | email tồn tại và không tồn tại trả cùng public status |
-| Callback URL | allowlisted được chấp nhận, URL khác bị reject |
-| Verification | valid signed link, invalid hash/signature, repeated verification |
-| Password policy | register/update/reset dùng cùng User rule |
-| Social auth | supported provider, unsupported provider, existing/new User, public Transformer |
-| Middleware | disabled User bị chặn trên API và web |
+| Flow               | Cases                                                                           |
+| ------------------ | ------------------------------------------------------------------------------- |
+| Login              | email, phone, case normalization, invalid credentials, disabled user            |
+| Proxy              | client credentials đến từ config, OAuth failure mapping                         |
+| Refresh            | body token, cookie token, invalid token, stable cookie response                 |
+| Logout current     | access token và linked refresh token bị revoke                                  |
+| Logout all devices | tất cả access/refresh tokens của User bị revoke                                 |
+| Forgot password    | email tồn tại và không tồn tại trả cùng public status                           |
+| Callback URL       | allowlisted được chấp nhận, URL khác bị reject                                  |
+| Verification       | valid signed link, invalid hash/signature, repeated verification                |
+| Password policy    | register/update/reset dùng cùng User rule                                       |
+| Social auth        | supported provider, unsupported provider, existing/new User, public Transformer |
+| Middleware         | disabled User bị chặn trên API và web                                           |
 
 ## 7.18. Common mistakes
 
-| Mistake | Style Dương |
-| --- | --- |
-| Hardcode email login ở nhiều nơi | Config-driven login attributes |
-| Cho frontend gửi Passport client secret | Backend proxy enriches server-owned fields |
-| Gọi `/oauth/token` lặp trong nhiều Actions | Một OAuth Task dùng chung |
-| Controller tự revoke token | Thin Controller, use case ở Action/Task |
-| Logout method tên mơ hồ | Tên thể hiện current/all-device scope |
-| Trả khác nhau khi email reset không tồn tại | Một public no-content contract |
-| Nhận arbitrary callback URL | `Rule::in()` với config allowlist |
-| `if provider === ...` trong Controller | Contract + class map + SubAction |
-| Duplicate password rules | User model source of truth |
-| Trả raw User/token internals | Transformer và explicit token response |
+| Mistake                                     | Style Dương                                |
+| ------------------------------------------- | ------------------------------------------ |
+| Hardcode email login ở nhiều nơi            | Config-driven login attributes             |
+| Cho frontend gửi Passport client secret     | Backend proxy enriches server-owned fields |
+| Gọi `/oauth/token` lặp trong nhiều Actions  | Một OAuth Task dùng chung                  |
+| Controller tự revoke token                  | Thin Controller, use case ở Action/Task    |
+| Logout method tên mơ hồ                     | Tên thể hiện current/all-device scope      |
+| Trả khác nhau khi email reset không tồn tại | Một public no-content contract             |
+| Nhận arbitrary callback URL                 | `Rule::in()` với config allowlist          |
+| `if provider === ...` trong Controller      | Contract + class map + SubAction           |
+| Duplicate password rules                    | User model source of truth                 |
+| Trả raw User/token internals                | Transformer và explicit token response     |
 
 ## 7.19. Checklist
 

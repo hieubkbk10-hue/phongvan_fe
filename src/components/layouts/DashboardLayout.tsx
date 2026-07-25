@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Home, Users, Settings, LogOut, Menu, X, Radio } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/stores/useAuthStore';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui';
 
 interface SidebarItemProps {
   to: string;
@@ -24,10 +24,12 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label }) => {
 };
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // UI: Quản lý trạng thái mở/đóng sidebar trên thiết bị di động tuân thủ is[Feature][State]
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
+  // QUYỀN: Xử lý đăng xuất tài khoản
   const handleLogout = () => {
     logout();
     navigate({ to: '/auth/login' });
@@ -60,9 +62,16 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         <div className="pt-4 border-t border-slate-800 flex items-center justify-between px-2">
           <div className="text-xs">
             <p className="font-medium text-slate-200">{user?.name || 'Guest User'}</p>
-            <p className="text-slate-500 truncate max-w-[120px]">{user?.email || 'guest@example.com'}</p>
+            <p className="text-slate-500 truncate max-w-[120px]">
+              {user?.email || 'guest@example.com'}
+            </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="p-1.5 text-slate-400 hover:text-slate-100">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="p-1.5 text-slate-400 hover:text-slate-100"
+          >
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
@@ -73,15 +82,15 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         {/* Top Mobile Bar */}
         <header className="md:hidden flex items-center justify-between border-b border-slate-800 bg-slate-900/80 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}>
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <Button variant="ghost" size="sm" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
             <span className="font-bold text-slate-100">Application</span>
           </div>
         </header>
 
         {/* Mobile Navigation Drawer */}
-        {sidebarOpen && (
+        {isSidebarOpen && (
           <div className="md:hidden border-b border-slate-800 bg-slate-900 px-4 py-3 space-y-1">
             {navigation.map((item) => (
               <SidebarItem key={item.to} to={item.to} icon={item.icon} label={item.label} />

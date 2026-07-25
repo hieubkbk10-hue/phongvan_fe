@@ -3,8 +3,10 @@
 ## 1. Công Thức Phân Trang Vô Hạn (Pagination Refactoring)
 
 ### Deferred Join (Nối Trì Hoãn)
+
 `LIMIT 1000000, 20` buộc MySQL quét 1,000,020 bản ghi rồi vứt bỏ 1,000,000 bản ghi đầu.
 Dùng Covering Index để lấy `id` trước, sau đó `JOIN` lấy thông tin chi tiết:
+
 ```sql
 SELECT o.id, o.user_id, o.status, o.total_amount, o.created_at
 FROM orders o
@@ -14,7 +16,9 @@ INNER JOIN (
 ```
 
 ### Keyset Pagination (Seek Method)
+
 Lưu lại mốc `id` / `created_at` của trang trước để lọc trực tiếp:
+
 ```sql
 SELECT id, user_id, status, total_amount, created_at
 FROM orders
@@ -82,13 +86,16 @@ ORDER BY created_at DESC, id DESC LIMIT 20;
 ## 6. Cẩm Nang EXPLAIN & Optimizer Hints
 
 ### Cột `type` (Tốt -> Tệ):
+
 `const` > `eq_ref` > `ref` > `range` > `index` > `ALL` (Full Table Scan 🚨).
 
 ### Red Flags Trong Cột `Extra`:
+
 - 🚨 `Using temporary`: Bảng tạm được tạo để gom nhóm/sắp xếp.
 - 🚨 `Using filesort`: Không dùng được chỉ mục để sắp xếp `ORDER BY`.
 - 🟢 `Using index`: Covering Index thành công.
 
 ### Optimizer Hints Thường Dùng:
+
 - `STRAIGHT_JOIN`: Ép thứ tự JOIN đúng theo câu lệnh SELECT (loại bỏ chi phí lập kế hoạch Greedy Search của Optimizer).
-- `FORCE INDEX (idx_name)`: Ép Optimizer dùng chỉ mục cụ thể khi thống kê (*Statistics*) bị lệch.
+- `FORCE INDEX (idx_name)`: Ép Optimizer dùng chỉ mục cụ thể khi thống kê (_Statistics_) bị lệch.
