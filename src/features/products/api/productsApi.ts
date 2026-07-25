@@ -10,15 +10,23 @@ export const getProducts = async (params?: ProductListParams) => {
     searchParts.push(`status:${params.status}`);
   }
 
-  const response = await apiClient.get<{ data: Product[]; meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } } }>('/products', {
-    params: {
-      page: params?.page || 1,
-      limit: params?.limit || 15,
-      ...(searchParts.length > 0 ? { search: searchParts.join(';'), searchJoin: 'and' } : {}),
-      ...(params?.status !== undefined ? { status: params.status } : {}),
-      include: 'media',
-    },
+  const queryParams: Record<string, any> = {
+    page: params?.page || 1,
+    limit: params?.limit || 15,
+    include: 'media',
+  };
+
+  if (searchParts.length > 0) {
+    queryParams.search = searchParts.join(';');
+  }
+
+  const response = await apiClient.get<{
+    data: Product[];
+    meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } };
+  }>('/products', {
+    params: queryParams,
   });
+
   return response.data;
 };
 
