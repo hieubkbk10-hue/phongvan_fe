@@ -2,8 +2,8 @@ import { z } from 'zod';
 import type { User } from '@/types';
 
 export const loginSchema = z.object({
-  email: z.string().email('Standard email address required'),
-  password: z.string().min(6, 'Password must contain at least 6 characters'),
+  email: z.string().email('Vui lòng nhập địa chỉ email hợp lệ'),
+  password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
   remember: z.boolean().optional(),
 });
 
