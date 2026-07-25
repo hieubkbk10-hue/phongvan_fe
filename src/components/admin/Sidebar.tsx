@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {!isCollapsed && (
               <div className="flex flex-col">
                 <span className="font-bold text-base text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                  PhongVân CMS
+                  Phỏng Vấn CMS
                 </span>
                 <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-600 dark:text-blue-400">
                   Admin Panel
