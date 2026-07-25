@@ -2,11 +2,6 @@ import { apiClient } from '@/lib/api-client';
 import type { Customer, CustomerListParams, CreateCustomerInput, UpdateCustomerInput } from '../types';
 
 export const getCustomers = async (params?: CustomerListParams) => {
-  const searchParts: string[] = [];
-  if (params?.search && params.search.trim() !== '') {
-    searchParts.push(`name:${params.search.trim()}`);
-  }
-
   const queryParams: Record<string, any> = {
     page: params?.page || 1,
     limit: params?.limit || 15,
@@ -16,9 +11,15 @@ export const getCustomers = async (params?: CustomerListParams) => {
     queryParams.trashed = params.trashed;
   }
 
-  if (searchParts.length > 0) {
-    queryParams.search = searchParts.join(';');
-    queryParams.searchJoin = 'and';
+  if (params?.search && params.search.trim() !== '') {
+    const s = params.search.trim();
+    if (/^\+?[0-9]+$/.test(s)) {
+      queryParams.search = `phone:${s}`;
+    } else if (s.includes('@')) {
+      queryParams.search = `email:${s}`;
+    } else {
+      queryParams.search = `name:${s}`;
+    }
   }
 
   const response = await apiClient.get<{

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { Users, Plus, Search, Filter, Edit3, Trash2, RotateCcw, Phone, MapPin, Mail, Loader2, UserCheck, UserX } from 'lucide-react';
+import { Users, Plus, Search, Edit3, Trash2, RotateCcw, Phone, MapPin, Mail, Loader2, UserCheck, UserX } from 'lucide-react';
 import type { Customer, CreateCustomerInput } from '@/features/customers/types';
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer, restoreCustomer } from '@/features/customers/api/customersApi';
 import { CustomerModal } from '@/features/customers/components/CustomerModal';
+import { useRealtimeSync } from '@/features/real-time/hooks/useRealtimeSync';
 
 export const Route = createFileRoute('/admin/customers')({
   component: CustomersPage,
@@ -30,9 +31,11 @@ function CustomersPage() {
         search: search || undefined,
         trashed: trashedTab === 'trashed' ? 'only' : undefined,
       });
-      setCustomers(result.data);
+      setCustomers(result.data || []);
       if (result.meta?.pagination) {
         setTotalPages(result.meta.pagination.total_pages);
+      } else {
+        setTotalPages(1);
       }
     } catch (error) {
       console.error('Lỗi tải danh sách khách hàng:', error);
@@ -45,40 +48,76 @@ function CustomersPage() {
     fetchCustomers();
   }, [fetchCustomers]);
 
+  // Soketi WebSocket Real-time listener for Customers
+  useRealtimeSync({
+    channel: 'customers',
+    events: ['CustomerCreated', 'CustomerUpdated', 'CustomerDeleted', 'CustomerRestored'],
+    onEvent: () => {
+      fetchCustomers();
+    },
+  });
+
+  // Optimistic UI for Create / Update
   const handleCreateOrUpdate = async (data: CreateCustomerInput) => {
+    const previousCustomers = [...customers];
     try {
       setSubmitting(true);
       if (editingCustomer) {
-        await updateCustomer({ id: editingCustomer.id, ...data });
+        // Optimistic Update (0ms)
+        setCustomers((prev) =>
+          prev.map((c) => (c.id === editingCustomer.id ? { ...c, ...data } : c))
+        );
+        setModalOpen(false);
+        const updated = await updateCustomer({ id: editingCustomer.id, ...data });
+        setCustomers((prev) => prev.map((c) => (c.id === editingCustomer.id ? updated : c)));
       } else {
-        await createCustomer(data);
+        // Optimistic Create (0ms)
+        const tempId = 'temp-' + Date.now();
+        const optimisticCust: Customer = {
+          id: tempId,
+          name: data.name,
+          phone: data.phone,
+          address: data.address || '',
+          email: data.email || null,
+        };
+        setCustomers((prev) => [optimisticCust, ...prev]);
+        setModalOpen(false);
+        const created = await createCustomer(data);
+        setCustomers((prev) => prev.map((c) => (c.id === tempId ? created : c)));
       }
-      setModalOpen(false);
       setEditingCustomer(null);
-      fetchCustomers();
     } catch (error: any) {
+      setCustomers(previousCustomers); // Rollback on error
       alert(error?.response?.data?.message || 'Thao tác thất bại. Vui lòng kiểm tra lại số điện thoại trùng.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Optimistic UI for Soft Delete
   const handleSoftDelete = async (id: string, name: string) => {
     if (!confirm(`Bạn có chắc chắn muốn xóa mềm khách hàng "${name}"?`)) return;
+    const previousCustomers = [...customers];
+    // Optimistic Delete (0ms)
+    setCustomers((prev) => prev.filter((c) => c.id !== id));
     try {
       await deleteCustomer(id);
-      fetchCustomers();
     } catch (error: any) {
+      setCustomers(previousCustomers); // Rollback on error
       alert(error?.response?.data?.message || 'Xóa khách hàng thất bại.');
     }
   };
 
+  // Optimistic UI for Restore
   const handleRestore = async (id: string, name: string) => {
     if (!confirm(`Bạn có muốn khôi phục khách hàng "${name}"?`)) return;
+    const previousCustomers = [...customers];
+    // Optimistic Restore (0ms) - remove from trashed list
+    setCustomers((prev) => prev.filter((c) => c.id !== id));
     try {
       await restoreCustomer(id);
-      fetchCustomers();
     } catch (error: any) {
+      setCustomers(previousCustomers); // Rollback on error
       alert(error?.response?.data?.message || 'Khôi phục khách hàng thất bại.');
     }
   };
@@ -149,7 +188,7 @@ function CustomersPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Tìm kiếm theo số điện thoại (E.164) hoặc tên khách hàng..."
+            placeholder="Tìm kiếm theo tên, số điện thoại hoặc email khách hàng..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -215,7 +254,7 @@ function CustomersPage() {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
                       <p className="truncate max-w-xs flex items-center gap-1.5 text-xs">
                         <MapPin size={14} className="text-slate-400 shrink-0" />
-                        <span>{customer.address}</span>
+                        <span>{customer.address || 'Chưa cập nhật'}</span>
                       </p>
                     </td>
 
