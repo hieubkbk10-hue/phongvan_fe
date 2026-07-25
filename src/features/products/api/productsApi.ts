@@ -3,8 +3,8 @@ import type { Product, ProductListParams, CreateProductInput, UpdateProductInput
 
 export const getProducts = async (params?: ProductListParams) => {
   const searchParts: string[] = [];
-  if (params?.search) {
-    searchParts.push(`name:${params.search}`);
+  if (params?.search && params.search.trim() !== '') {
+    searchParts.push(`name:${params.search.trim()}`);
   }
   if (params?.status !== undefined) {
     searchParts.push(`status:${params.status}`);
@@ -18,6 +18,7 @@ export const getProducts = async (params?: ProductListParams) => {
 
   if (searchParts.length > 0) {
     queryParams.search = searchParts.join(';');
+    queryParams.searchJoin = 'and';
   }
 
   const response = await apiClient.get<{

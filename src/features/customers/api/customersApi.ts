@@ -2,17 +2,32 @@ import { apiClient } from '@/lib/api-client';
 import type { Customer, CustomerListParams, CreateCustomerInput, UpdateCustomerInput } from '../types';
 
 export const getCustomers = async (params?: CustomerListParams) => {
+  const searchParts: string[] = [];
+  if (params?.search && params.search.trim() !== '') {
+    searchParts.push(`name:${params.search.trim()}`);
+  }
+
+  const queryParams: Record<string, any> = {
+    page: params?.page || 1,
+    limit: params?.limit || 15,
+  };
+
+  if (params?.trashed) {
+    queryParams.trashed = params.trashed;
+  }
+
+  if (searchParts.length > 0) {
+    queryParams.search = searchParts.join(';');
+    queryParams.searchJoin = 'and';
+  }
+
   const response = await apiClient.get<{
     data: Customer[];
     meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } };
   }>('/customers', {
-    params: {
-      page: params?.page || 1,
-      limit: params?.limit || 15,
-      ...(params?.search ? { search: params.search } : {}),
-      ...(params?.trashed ? { trashed: params.trashed } : {}),
-    },
+    params: queryParams,
   });
+
   return response.data;
 };
 
