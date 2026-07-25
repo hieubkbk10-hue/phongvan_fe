@@ -22,8 +22,7 @@ export const CompleteOrderModal: React.FC<CompleteOrderModalProps> = ({
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<{ note: string }>();
+  } = useForm<{ delivery_date?: string; shipping_carrier?: string }>();
 
   if (!isOpen || !order) return null;
 
@@ -48,7 +47,13 @@ export const CompleteOrderModal: React.FC<CompleteOrderModalProps> = ({
 
         {/* Form Body */}
         <form
-          onSubmit={handleSubmit((data) => onConfirm({ id: order.id, note: data.note }))}
+          onSubmit={handleSubmit((data) =>
+            onConfirm({
+              id: order.id,
+              delivery_date: data.delivery_date || undefined,
+              shipping_carrier: data.shipping_carrier || undefined,
+            })
+          )}
           className="p-6 space-y-4"
         >
           <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -61,17 +66,25 @@ export const CompleteOrderModal: React.FC<CompleteOrderModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-              Ghi chú hoàn thành (Không bắt buộc)
+              Ngày giao hàng (YYYY-MM-DD)
             </label>
-            <textarea
-              rows={3}
-              placeholder="VD: Khách đã nhận hàng đầy đủ..."
-              {...register('note')}
+            <input
+              type="date"
+              {...register('delivery_date')}
+              className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+              Đơn vị vận chuyển
+            </label>
+            <input
+              type="text"
+              placeholder="VD: Giao Hàng Nhanh, Viettel Post..."
+              {...register('shipping_carrier')}
               className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none focus:border-emerald-500"
             />
-            {errors.note && (
-              <p className="text-xs text-rose-500 mt-1 font-medium">{errors.note.message}</p>
-            )}
           </div>
 
           {/* Action Buttons */}

@@ -40,25 +40,30 @@ export interface OrderListParams {
 export interface CreateOrderItemInput {
   product_id: string;
   quantity: number;
-  unit_price: number;
+  unit_price?: number;
+  price_override_reason?: string;
 }
 
 export interface CreateOrderInput {
   customer_id?: string;
-  customer_name?: string;
-  customer_phone?: string;
-  customer_address?: string;
+  customer_name_snapshot?: string;
+  customer_phone_snapshot?: string;
+  customer_address_snapshot?: string;
   payment_method: number;
+  delivery_date?: string;
+  shipping_carrier?: string;
   bank_name?: string;
   bank_account_number?: string;
   credit_days?: number;
-  note?: string;
+  shipping_fee?: number;
+  advance_payment?: number;
   items: CreateOrderItemInput[];
 }
 
 export interface CompleteOrderInput {
   id: string;
-  note?: string;
+  delivery_date?: string;
+  shipping_carrier?: string;
 }
 
 export interface CancelOrderInput {

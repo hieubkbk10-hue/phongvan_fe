@@ -171,15 +171,28 @@ function CreateOrderPage() {
 
     const payload: CreateOrderInput = {
       customer_id: selectedCustomerId,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      customer_address: customerAddress,
+      customer_name_snapshot: customerName,
+      customer_phone_snapshot: customerPhone,
+      customer_address_snapshot: customerAddress,
       payment_method: Number(paymentMethod),
-      items: items.map((i) => ({
-        product_id: i.product_id,
-        unit_price: Number(i.unit_price),
-        quantity: Number(i.quantity),
-      })),
+      shipping_fee: Number(shippingFee),
+      advance_payment: Number(advancePayment),
+      items: items.map((i) => {
+        const itemObj: {
+          product_id: string;
+          quantity: number;
+          unit_price?: number;
+          price_override_reason?: string;
+        } = {
+          product_id: i.product_id,
+          quantity: Number(i.quantity),
+          unit_price: Number(i.unit_price),
+        };
+        if (i.unit_price !== i.list_price && i.price_override_reason.trim()) {
+          itemObj.price_override_reason = i.price_override_reason.trim();
+        }
+        return itemObj;
+      }),
     };
 
     if (Number(paymentMethod) === 3) {

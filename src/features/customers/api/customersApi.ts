@@ -52,12 +52,25 @@ export const getCustomerById = async (id: string) => {
 };
 
 export const createCustomer = async (data: CreateCustomerInput) => {
-  const response = await apiClient.post<{ data: Customer }>('/customers', data);
+  const payload: Record<string, unknown> = {
+    name: data.name,
+    phone: data.phone,
+    address: data.address || '',
+  };
+  if (data.email) payload.email = data.email;
+
+  const response = await apiClient.post<{ data: Customer }>('/customers', payload);
   return response.data.data;
 };
 
 export const updateCustomer = async ({ id, ...data }: UpdateCustomerInput) => {
-  const response = await apiClient.patch<{ data: Customer }>(`/customers/${id}`, data);
+  const payload: Record<string, unknown> = {};
+  if (data.name !== undefined) payload.name = data.name;
+  if (data.phone !== undefined) payload.phone = data.phone;
+  if (data.address !== undefined) payload.address = data.address;
+  if (data.email !== undefined) payload.email = data.email;
+
+  const response = await apiClient.patch<{ data: Customer }>(`/customers/${id}`, payload);
   return response.data.data;
 };
 
