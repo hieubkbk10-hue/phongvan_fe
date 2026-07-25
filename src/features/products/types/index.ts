@@ -13,8 +13,15 @@ export interface Product {
   status: 0 | 1; // 0 = INACTIVE, 1 = ACTIVE
   created_at?: string;
   updated_at?: string;
-  media?: MediaItem[];
+  media?: MediaItem[] | { data: MediaItem[] };
 }
+
+export const getMediaList = (media: any): MediaItem[] => {
+  if (!media) return [];
+  if (Array.isArray(media)) return media;
+  if (Array.isArray(media.data)) return media.data;
+  return [];
+};
 
 export interface ProductListParams {
   page?: number;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, Star, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
 import type { Product, MediaItem } from '../types';
+import { getMediaList } from '../types';
 import { uploadProductMedia, deleteProductMedia, setMainProductMedia } from '../api/productsApi';
 
 interface ProductMediaModalProps {
@@ -22,7 +23,7 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
 
   if (!isOpen || !product) return null;
 
-  const mediaList: MediaItem[] = product.media || [];
+  const mediaList: MediaItem[] = getMediaList(product.media);
   const canUpload = mediaList.length < 9;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

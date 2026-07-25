@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Package, Plus, Search, Filter, Edit3, Trash2, Image as ImageIcon, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import type { Product, CreateProductInput } from '@/features/products/types';
+import { getMediaList } from '@/features/products/types';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '@/features/products/api/productsApi';
 import { ProductModal } from '@/features/products/components/ProductModal';
 import { ProductMediaModal } from '@/features/products/components/ProductMediaModal';
@@ -175,7 +176,8 @@ function ProductsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                 {products.map((product) => {
-                  const mainImage = product.media?.find((m) => m.is_main) || product.media?.[0];
+                  const mediaList = getMediaList(product.media);
+                  const mainImage = mediaList.find((m) => m.is_main) || mediaList[0];
 
                   return (
                     <tr key={product.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">

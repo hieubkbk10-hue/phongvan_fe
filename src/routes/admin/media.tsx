@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Image as ImageIcon, Package, Star, Search, Loader2 } from 'lucide-react';
 import { getProducts } from '@/features/products/api/productsApi';
+import { getMediaList } from '@/features/products/types';
 import type { Product } from '@/features/products/types';
 
 export const Route = createFileRoute('/admin/media')({
@@ -29,7 +30,7 @@ function MediaLibraryPage() {
   }, []);
 
   const allMedia = products.flatMap((p) =>
-    (p.media || []).map((m) => ({
+    getMediaList(p.media).map((m) => ({
       ...m,
       productName: p.name,
       productId: p.id,
