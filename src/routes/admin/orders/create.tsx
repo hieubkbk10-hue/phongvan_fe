@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
-import { ShoppingCart, ArrowLeft, Plus, Trash2, User, Package, DollarSign, Loader2 } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Trash2, User, Package, DollarSign, Loader2, CreditCard, Building2 } from 'lucide-react';
 import { getCustomers } from '@/features/customers/api/customersApi';
 import { getProducts } from '@/features/products/api/productsApi';
 import { createOrder } from '@/features/orders/api/ordersApi';
 import type { Customer } from '@/features/customers/types';
 import type { Product } from '@/features/products/types';
-import type { CreateOrderItemInput } from '@/features/orders/types';
 
 export const Route = createFileRoute('/admin/orders/create')({
   component: CreateOrderPage,
@@ -26,7 +25,12 @@ function CreateOrderPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
 
-  const [paymentMethod, setPaymentMethod] = useState<number>(1); // 1 = CASH
+  // Payment methods: 1 = COD, 2 = CASH, 3 = BANK_TRANSFER, 4 = CREDIT
+  const [paymentMethod, setPaymentMethod] = useState<number>(1);
+  const [bankName, setBankName] = useState('');
+  const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [creditDays, setCreditDays] = useState<number>(30);
+
   const [shippingFee, setShippingFee] = useState<number>(0);
   const [advancePayment, setAdvancePayment] = useState<number>(0);
 
@@ -68,7 +72,7 @@ function CreateOrderPage() {
     if (found) {
       setCustomerName(found.name);
       setCustomerPhone(found.phone);
-      setCustomerAddress(found.address);
+      setCustomerAddress(found.address || '');
     }
   };
 
@@ -153,7 +157,7 @@ function CreateOrderPage() {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       customer_id: selectedCustomerId,
       customer_name_snapshot: customerName,
       customer_phone_snapshot: customerPhone,
@@ -170,6 +174,21 @@ function CreateOrderPage() {
           : {}),
       })),
     };
+
+    if (Number(paymentMethod) === 3) {
+      if (!bankName.trim() || !bankAccountNumber.trim()) {
+        alert('Vui lòng nhập Tên ngân hàng và Số tài khoản chuyển khoản.');
+        return;
+      }
+      payload.bank_name = bankName.trim();
+      payload.bank_account_number = bankAccountNumber.trim();
+    } else if (Number(paymentMethod) === 4) {
+      if (!creditDays || creditDays < 1) {
+        alert('Vui lòng nhập số ngày công nợ hợp lệ (từ 1 đến 365 ngày).');
+        return;
+      }
+      payload.credit_days = Number(creditDays);
+    }
 
     try {
       setSubmitting(true);
@@ -402,16 +421,17 @@ function CreateOrderPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                Phương thức thanh toán
+                Phương thức thanh toán <span className="text-rose-500">*</span>
               </label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(Number(e.target.value))}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-amber-500"
+                className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-amber-500 font-medium"
               >
-                <option value={1}>Tiền mặt (CASH)</option>
-                <option value={2}>Chuyển khoản (BANK_TRANSFER)</option>
-                <option value={3}>Công nợ (CREDIT)</option>
+                <option value={1}>Ship COD (Giao hàng thu tiền)</option>
+                <option value={2}>Tiền mặt (CASH tại cửa hàng)</option>
+                <option value={3}>Chuyển khoản (BANK_TRANSFER)</option>
+                <option value={4}>Công nợ (CREDIT)</option>
               </select>
             </div>
 
@@ -441,6 +461,54 @@ function CreateOrderPage() {
               />
             </div>
           </div>
+
+          {/* Dynamic Payment Method Fields */}
+          {paymentMethod === 3 && (
+            <div className="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in zoom-in duration-200">
+              <div>
+                <label className="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <Building2 size={14} /> Tên Ngân Hàng <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="VD: Vietcombank, Techcombank, MB Bank..."
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-amber-500 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <CreditCard size={14} /> Số Tài Khoản <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="VD: 9999888888..."
+                  value={bankAccountNumber}
+                  onChange={(e) => setBankAccountNumber(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-amber-500 font-mono font-bold"
+                />
+              </div>
+            </div>
+          )}
+
+          {paymentMethod === 4 && (
+            <div className="p-4 bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50 rounded-xl max-w-sm animate-in fade-in zoom-in duration-200">
+              <label className="block text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider mb-1">
+                Số ngày thời hạn công nợ (Days) <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={365}
+                placeholder="VD: 30 (ngày)"
+                value={creditDays}
+                onChange={(e) => setCreditDays(Number(e.target.value))}
+                className="w-full px-3.5 py-2 text-sm bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-indigo-500 font-bold"
+              />
+            </div>
+          )}
 
           {/* Calculations Card */}
           <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2 text-sm max-w-sm ml-auto">
