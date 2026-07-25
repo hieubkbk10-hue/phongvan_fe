@@ -5,7 +5,7 @@ export const getOrders = async (params?: OrderListParams) => {
   const response = await apiClient.get<{
     data: Order[];
     meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } };
-  }>('/v1/orders', {
+  }>('/orders', {
     params: {
       page: params?.page || 1,
       limit: params?.limit || 15,
@@ -18,28 +18,28 @@ export const getOrders = async (params?: OrderListParams) => {
 };
 
 export const getOrderById = async (id: string) => {
-  const response = await apiClient.get<{ data: Order }>(`/v1/orders/${id}`, {
+  const response = await apiClient.get<{ data: Order }>(`/orders/${id}`, {
     params: { include: 'items,customer' },
   });
   return response.data.data;
 };
 
 export const createOrder = async (data: CreateOrderInput) => {
-  const response = await apiClient.post<{ data: Order }>('/v1/orders', data);
+  const response = await apiClient.post<{ data: Order }>('/orders', data);
   return response.data.data;
 };
 
 export const completeOrder = async (id: string, data: CompleteOrderInput) => {
-  const response = await apiClient.post<{ data: Order }>(`/v1/orders/${id}/complete`, data);
+  const response = await apiClient.post<{ data: Order }>(`/orders/${id}/complete`, data);
   return response.data.data;
 };
 
 export const cancelOrder = async (id: string, data: CancelOrderInput) => {
-  const response = await apiClient.post<{ data: Order }>(`/v1/orders/${id}/cancel`, data);
+  const response = await apiClient.post<{ data: Order }>(`/orders/${id}/cancel`, data);
   return response.data.data;
 };
 
 export const deleteOrder = async (id: string) => {
-  const response = await apiClient.delete(`/v1/orders/${id}`);
+  const response = await apiClient.delete(`/orders/${id}`);
   return response.data;
 };

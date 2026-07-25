@@ -5,7 +5,7 @@ export const getCustomers = async (params?: CustomerListParams) => {
   const response = await apiClient.get<{
     data: Customer[];
     meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } };
-  }>('/v1/customers', {
+  }>('/customers', {
     params: {
       page: params?.page || 1,
       limit: params?.limit || 15,
@@ -17,26 +17,26 @@ export const getCustomers = async (params?: CustomerListParams) => {
 };
 
 export const getCustomerById = async (id: string) => {
-  const response = await apiClient.get<{ data: Customer }>(`/v1/customers/${id}`);
+  const response = await apiClient.get<{ data: Customer }>(`/customers/${id}`);
   return response.data.data;
 };
 
 export const createCustomer = async (data: CreateCustomerInput) => {
-  const response = await apiClient.post<{ data: Customer }>('/v1/customers', data);
+  const response = await apiClient.post<{ data: Customer }>('/customers', data);
   return response.data.data;
 };
 
 export const updateCustomer = async ({ id, ...data }: UpdateCustomerInput) => {
-  const response = await apiClient.patch<{ data: Customer }>(`/v1/customers/${id}`, data);
+  const response = await apiClient.patch<{ data: Customer }>(`/customers/${id}`, data);
   return response.data.data;
 };
 
 export const deleteCustomer = async (id: string) => {
-  const response = await apiClient.delete(`/v1/customers/${id}`);
+  const response = await apiClient.delete(`/customers/${id}`);
   return response.data;
 };
 
 export const restoreCustomer = async (id: string) => {
-  const response = await apiClient.post<{ data: Customer }>(`/v1/customers/${id}/restore`);
+  const response = await apiClient.post<{ data: Customer }>(`/customers/${id}/restore`);
   return response.data.data;
 };
