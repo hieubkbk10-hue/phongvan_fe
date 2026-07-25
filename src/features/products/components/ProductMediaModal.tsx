@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Upload, Star, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
 import type { Product, MediaItem } from '../types';
 import { getMediaList } from '../types';
@@ -17,20 +17,28 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
   product,
   onMediaUpdated,
 }) => {
+  const [localMedia, setLocalMedia] = useState<MediaItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [actionMediaId, setActionMediaId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (product) {
+      setLocalMedia(getMediaList(product.media));
+    } else {
+      setLocalMedia([]);
+    }
+  }, [product]);
+
   if (!isOpen || !product) return null;
 
-  const mediaList: MediaItem[] = getMediaList(product.media);
-  const canUpload = mediaList.length < 9;
+  const canUpload = localMedia.length < 9;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (mediaList.length >= 9) {
+    if (localMedia.length >= 9) {
       setErrorMsg('Mỗi sản phẩm chỉ được tối đa 9 ảnh.');
       return;
     }
@@ -38,7 +46,10 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
     try {
       setUploading(true);
       setErrorMsg(null);
-      await uploadProductMedia(product.id, file);
+      const newMedia = await uploadProductMedia(product.id, file);
+      if (newMedia) {
+        setLocalMedia((prev) => [...prev, newMedia]);
+      }
       onMediaUpdated();
     } catch (err: any) {
       setErrorMsg(err?.response?.data?.message || 'Tải ảnh lên thất bại.');
@@ -49,11 +60,16 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
   };
 
   const handleSetMain = async (mediaId: string) => {
+    const previousMedia = [...localMedia];
     try {
       setActionMediaId(mediaId);
+      setLocalMedia((prev) =>
+        prev.map((m) => ({ ...m, is_main: m.id === mediaId }))
+      );
       await setMainProductMedia(product.id, mediaId);
       onMediaUpdated();
     } catch (err: any) {
+      setLocalMedia(previousMedia);
       setErrorMsg(err?.response?.data?.message || 'Không thể đặt ảnh chính.');
     } finally {
       setActionMediaId(null);
@@ -62,11 +78,14 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
 
   const handleDelete = async (mediaId: string) => {
     if (!confirm('Bạn có chắc chắn muốn xóa ảnh này?')) return;
+    const previousMedia = [...localMedia];
     try {
       setActionMediaId(mediaId);
+      setLocalMedia((prev) => prev.filter((m) => m.id !== mediaId));
       await deleteProductMedia(product.id, mediaId);
       onMediaUpdated();
     } catch (err: any) {
+      setLocalMedia(previousMedia);
       setErrorMsg(err?.response?.data?.message || 'Không thể xóa ảnh.');
     } finally {
       setActionMediaId(null);
@@ -83,7 +102,7 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
               Thư viện ảnh sản phẩm
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {product.name} ({mediaList.length}/9 ảnh)
+              {product.name} ({localMedia.length}/9 ảnh)
             </p>
           </div>
           <button
@@ -134,14 +153,14 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
           </div>
 
           {/* Image Grid */}
-          {mediaList.length === 0 ? (
+          {localMedia.length === 0 ? (
             <div className="py-12 text-center text-slate-400">
               <ImageIcon size={48} className="mx-auto opacity-30 mb-2" />
               <p className="text-sm font-medium">Sản phẩm chưa có hình ảnh nào.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
-              {mediaList.map((item) => (
+              {localMedia.map((item) => (
                 <div
                   key={item.id}
                   className={`group relative rounded-xl overflow-hidden border bg-slate-100 dark:bg-slate-800 transition-all ${
