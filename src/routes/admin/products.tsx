@@ -6,6 +6,7 @@ import { getMediaList } from '@/features/products/types';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '@/features/products/api/productsApi';
 import { ProductModal } from '@/features/products/components/ProductModal';
 import { ProductMediaModal } from '@/features/products/components/ProductMediaModal';
+import { useRealtimeSync } from '@/features/real-time/hooks/useRealtimeSync';
 
 export const Route = createFileRoute('/admin/products')({
   component: ProductsPage,
@@ -51,40 +52,78 @@ function ProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Real-time Soketi WebSocket listener for Products
+  useRealtimeSync({
+    channel: 'products',
+    events: ['ProductCreated', 'ProductUpdated', 'ProductDeleted', 'ProductStatusUpdated'],
+    onEvent: () => {
+      fetchProducts();
+    },
+  });
+
+  // Optimistic UI for Create/Update
   const handleCreateOrUpdate = async (data: CreateProductInput) => {
+    const previousProducts = [...products];
     try {
       setSubmitting(true);
       if (editingProduct) {
-        await updateProduct({ id: editingProduct.id, ...data });
+        // Optimistic update
+        setProducts((prev) =>
+          prev.map((p) => (p.id === editingProduct.id ? { ...p, ...data } : p))
+        );
+        setModalOpen(false);
+        const updated = await updateProduct({ id: editingProduct.id, ...data });
+        setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? updated : p)));
       } else {
-        await createProduct(data);
+        // Optimistic creation
+        const tempId = 'temp-' + Date.now();
+        const optimisticProd: Product = {
+          id: tempId,
+          name: data.name,
+          price: data.price,
+          status: data.status,
+          media: [],
+        };
+        setProducts((prev) => [optimisticProd, ...prev]);
+        setModalOpen(false);
+        const created = await createProduct(data);
+        setProducts((prev) => prev.map((p) => (p.id === tempId ? created : p)));
       }
-      setModalOpen(false);
       setEditingProduct(null);
-      fetchProducts();
     } catch (error: any) {
+      setProducts(previousProducts); // Rollback on error
       alert(error?.response?.data?.message || 'Thao tác thất bại.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Optimistic UI for Delete
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}"? Hành động này sẽ thực hiện hard-delete.`)) return;
+    const previousProducts = [...products];
+    // Optimistically remove from list immediately
+    setProducts((prev) => prev.filter((p) => p.id !== id));
     try {
       await deleteProduct(id);
-      fetchProducts();
     } catch (error: any) {
+      setProducts(previousProducts); // Rollback on error
       alert(error?.response?.data?.message || 'Xóa sản phẩm thất bại.');
     }
   };
 
+  // Optimistic UI for Toggle Status
   const handleToggleStatus = async (product: Product) => {
     const newStatus = product.status === 1 ? 0 : 1;
+    const previousProducts = [...products];
+    // Optimistically update status badge immediately
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, status: newStatus } : p))
+    );
     try {
       await updateProduct({ id: product.id, status: newStatus });
-      fetchProducts();
     } catch (error: any) {
+      setProducts(previousProducts); // Rollback on error
       alert(error?.response?.data?.message || 'Cập nhật trạng thái thất bại.');
     }
   };
