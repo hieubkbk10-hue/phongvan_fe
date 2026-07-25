@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const loginSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
-  password: z.string().min(6, 'Mật khẩu phải từ 6 ký tự'),
+  password: z.string().min(4, 'Mật khẩu phải từ 4 ký tự'),
 });
 
 export type LoginPayload = z.infer<typeof loginSchema>;
