@@ -105,7 +105,8 @@ function ProductsPage() {
           id: tempId,
           name: data.name,
           price: data.price,
-          stock_quantity: data.stock_quantity || 0,
+          status: data.status ?? 1,
+          stock_quantity: 0,
           media: [],
         };
         setProducts((prev) => [optimisticProd, ...prev]);
@@ -281,9 +282,15 @@ function ProductsPage() {
                       </td>
 
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                          <CheckCircle2 size={12} /> Hoạt động
-                        </span>
+                        {Number(product.status) === 1 ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                            <CheckCircle2 size={12} /> Hoạt động
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                            Tạm ngưng
+                          </span>
+                        )}
                       </td>
 
                       <td className="px-6 py-4 text-right">

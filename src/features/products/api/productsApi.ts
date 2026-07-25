@@ -54,12 +54,24 @@ export const getProductById = async (id: string) => {
 };
 
 export const createProduct = async (data: CreateProductInput) => {
-  const response = await apiClient.post<{ data: Product }>('/products', data);
+  const payload: Record<string, unknown> = {
+    name: data.name,
+    price: Number(data.price),
+  };
+  if (data.status !== undefined) {
+    payload.status = Number(data.status);
+  }
+  const response = await apiClient.post<{ data: Product }>('/products', payload);
   return response.data.data;
 };
 
 export const updateProduct = async ({ id, ...data }: UpdateProductInput) => {
-  const response = await apiClient.patch<{ data: Product }>(`/products/${id}`, data);
+  const payload: Record<string, unknown> = {};
+  if (data.name !== undefined) payload.name = data.name;
+  if (data.price !== undefined) payload.price = Number(data.price);
+  if (data.status !== undefined) payload.status = Number(data.status);
+
+  const response = await apiClient.patch<{ data: Product }>(`/products/${id}`, payload);
   return response.data.data;
 };
 

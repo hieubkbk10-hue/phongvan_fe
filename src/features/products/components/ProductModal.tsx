@@ -28,9 +28,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     defaultValues: {
       name: '',
       price: 0,
-      stock_quantity: 0,
-      description: '',
-      category: '',
+      status: 1,
     },
   });
 
@@ -39,20 +37,24 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       reset({
         name: product.name,
         price: Number(product.price),
-        stock_quantity: Number(product.stock_quantity || 0),
-        description: product.description || '',
-        category: product.category || '',
+        status: product.status !== undefined ? Number(product.status) : 1,
       });
     } else {
       reset({
         name: '',
         price: 0,
-        stock_quantity: 0,
-        description: '',
-        category: '',
+        status: 1,
       });
     }
   }, [product, reset, isOpen]);
+
+  const handleFormSubmit = (data: CreateProductInput) => {
+    onSubmit({
+      name: data.name,
+      price: Number(data.price),
+      status: Number(data.status ?? 1),
+    });
+  };
 
   if (!isOpen) return null;
 
@@ -73,7 +75,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-4">
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
               Tên sản phẩm <span className="text-rose-500">*</span>
@@ -99,6 +101,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               placeholder="VD: 250000"
               {...register('price', {
                 required: 'Giá sản phẩm không được để trống',
+                valueAsNumber: true,
                 min: { value: 0, message: 'Giá không được âm' },
               })}
               className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none focus:border-blue-500"
@@ -110,14 +113,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-              Số lượng tồn kho
+              Trạng thái <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="number"
-              placeholder="VD: 100"
-              {...register('stock_quantity', { valueAsNumber: true })}
+            <select
+              {...register('status', { valueAsNumber: true })}
               className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500"
-            />
+            >
+              <option value={1}>Hoạt động (Active)</option>
+              <option value={0}>Tạm ngưng (Inactive)</option>
+            </select>
           </div>
 
           {/* Action Buttons */}

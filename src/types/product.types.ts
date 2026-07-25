@@ -36,11 +36,7 @@ export interface ProductListParams {
 export interface CreateProductInput {
   name: string;
   price: number;
-  stock_quantity?: number;
   status?: number;
-  description?: string;
-  category?: string;
-  image_url?: string;
 }
 
 export interface UpdateProductInput extends Partial<CreateProductInput> {
