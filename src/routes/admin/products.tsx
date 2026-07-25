@@ -37,7 +37,13 @@ function ProductsPage() {
         search: search || undefined,
         status: statusFilter,
       });
-      setProducts(result.data);
+      
+      let items = result.data || [];
+      if (statusFilter !== undefined) {
+        items = items.filter((p) => Number(p.status) === Number(statusFilter));
+      }
+
+      setProducts(items);
       if (result.meta?.pagination) {
         setTotalPages(result.meta.pagination.total_pages);
       }
@@ -116,10 +122,16 @@ function ProductsPage() {
   const handleToggleStatus = async (product: Product) => {
     const newStatus = product.status === 1 ? 0 : 1;
     const previousProducts = [...products];
-    // Optimistically update status badge immediately
-    setProducts((prev) =>
-      prev.map((p) => (p.id === product.id ? { ...p, status: newStatus } : p))
-    );
+    
+    // Optimistically update status
+    setProducts((prev) => {
+      const updatedList = prev.map((p) => (p.id === product.id ? { ...p, status: newStatus as 0 | 1 } : p));
+      if (statusFilter !== undefined) {
+        return updatedList.filter((p) => Number(p.status) === Number(statusFilter));
+      }
+      return updatedList;
+    });
+
     try {
       await updateProduct({ id: product.id, status: newStatus });
     } catch (error: any) {

@@ -2,11 +2,19 @@ import { apiClient } from '@/lib/api-client';
 import type { Product, ProductListParams, CreateProductInput, UpdateProductInput, MediaItem } from '../types';
 
 export const getProducts = async (params?: ProductListParams) => {
+  const searchParts: string[] = [];
+  if (params?.search) {
+    searchParts.push(`name:${params.search}`);
+  }
+  if (params?.status !== undefined) {
+    searchParts.push(`status:${params.status}`);
+  }
+
   const response = await apiClient.get<{ data: Product[]; meta?: { pagination?: { total: number; count: number; per_page: number; current_page: number; total_pages: number } } }>('/products', {
     params: {
       page: params?.page || 1,
       limit: params?.limit || 15,
-      ...(params?.search ? { search: params.search } : {}),
+      ...(searchParts.length > 0 ? { search: searchParts.join(';'), searchJoin: 'and' } : {}),
       ...(params?.status !== undefined ? { status: params.status } : {}),
       include: 'media',
     },
