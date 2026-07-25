@@ -11,12 +11,11 @@ export const Route = createFileRoute('/admin')({
 function AdminLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Default strictly to Light Mode (false) unless localStorage explicitly has 'dark'
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return (
-      localStorage.getItem('theme') === 'dark' ||
-      (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    );
+    return localStorage.getItem('theme') === 'dark';
   });
 
   useEffect(() => {
