@@ -26,8 +26,15 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const msg = (error.response?.data as any)?.message;
+
+    // Handle stale or unauthenticated sessions
+    if (status === 401 || msg === 'Unauthenticated.') {
       useAuthStore.getState().logout();
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/login')) {
+        window.location.href = '/auth/login';
+      }
     }
     return Promise.reject(error);
   }
