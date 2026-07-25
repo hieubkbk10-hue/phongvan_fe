@@ -74,13 +74,22 @@
 - Không chạy build nặng khi thay đổi không chạm frontend/build pipeline.
 - Nếu validator fail vì môi trường thiếu dependency/database, ghi rõ lệnh, lỗi chính và phần đã verify được.
 
-## 8. Git workflow
+## 8. Git workflow & Quy trình phê duyệt với Developer (Hiếu)
 
-- Trước khi commit hoặc push, luôn kiểm tra `git status`, `git diff` và `git diff --cached`.
+- **QUY TẮC BẮT BUỘC VỀ COMMIT & PUSH:**
+  - **TUYỆT ĐỐI KHÔNG TỰ Ý COMMIT HOẶC PUSH CODE:** Sau khi hoàn thành viết/sửa code, AI Agent **nghiêm cấm** tự động chạy lệnh `git commit` hoặc `git push`.
+  - **Trình bày & Xin ý kiến anh Hiếu:** AI Agent phải tổng hợp danh sách thay đổi, giải thích giải pháp và xin ý kiến anh **Hiếu** review code trước.
+  - **Chỉ commit/push khi anh Hiếu phê duyệt:** Chỉ khi anh **Hiếu** xem qua code, xác nhận đồng ý (OK / Approve), AI Agent mới được phép chạy commit hoặc push.
+
+- **Quy tắc phân nhánh cho AI Agent:**
+  - **Tính năng mới / Thay đổi lớn (New Feature / Major Change):** Khi nhận task phát triển tính năng mới, tạo container/module mới, hoặc thay đổi lớn về API/DB Schema, AI Agent **bắt buộc phải tách nhánh mới** từ `master` trước khi bắt đầu sửa code.
+    - **Quy chuẩn đặt tên nhánh:** Bắt buộc tuân theo định dạng chuẩn công ty tại `.factory/standards/quy_chuan_code_cong_ty.md`: `dev_hieu_{feature_description}` (dùng chữ thường không dấu và dấu gạch dưới, ví dụ: `dev_hieu_order_management`).
+  - **Sửa nhỏ / Cập nhật nhẹ (Small Fix / Bugfix / Docs / Refactor nhỏ):** Sửa trực tiếp trên `master` (hoặc nhánh hiện tại), không tách nhánh mới để tránh dư thừa nhánh và tốn chi phí quản lý Pull Request.
+- Trước khi commit hoặc push (sau khi được anh Hiếu cho phép), luôn kiểm tra `git status`, `git diff` và `git diff --cached`.
 - Chỉ stage file liên quan đến task. Không stage untracked file lạ nếu chưa xác minh.
+- Tuân thủ quy chuẩn Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `perf:`).
 - Không commit secret, `.env`, private key, log, cache hoặc build output ngoài quy ước repo.
-- Commit message ngắn gọn, mô tả lý do/thay đổi chính.
-- Chỉ push khi user yêu cầu rõ. Khi push, ưu tiên remote/branch hiện tại và tránh force push.
+- Commit message ngắn gọn, mô tả lý do/thay đổi chính. Tránh force push dưới mọi hình thức.
 
 ## 9. Khi gặp bug hoặc yêu cầu mơ hồ
 
