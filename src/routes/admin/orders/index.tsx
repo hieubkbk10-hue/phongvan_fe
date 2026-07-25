@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ShoppingCart, Plus, Search, Filter, CheckCircle2, XCircle, Trash2, Clock, Phone, Loader2 } from 'lucide-react';
+import { ShoppingCart, Plus, Search, Filter, CheckCircle2, XCircle, Trash2, Clock, Phone, Loader2, Eye } from 'lucide-react';
 import type { Order, OrderStatus, CompleteOrderInput, CancelOrderInput } from '@/features/orders/types';
 import { getOrders, completeOrder, cancelOrder, deleteOrder } from '@/features/orders/api/ordersApi';
 import { CompleteOrderModal } from '@/features/orders/components/CompleteOrderModal';
 import { CancelOrderModal } from '@/features/orders/components/CancelOrderModal';
+import { OrderDetailModal } from '@/features/orders/components/OrderDetailModal';
 import { useRealtimeSync } from '@/features/real-time/hooks/useRealtimeSync';
 
 export const Route = createFileRoute('/admin/orders/')({
@@ -22,6 +23,7 @@ function OrdersPage() {
   // Modals state
   const [completeModalOpen, setCompleteModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -251,8 +253,17 @@ function OrdersPage() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="px-6 py-4 font-mono font-bold text-blue-600 dark:text-blue-400">
-                      {order.code}
+                    <td className="px-6 py-4 font-mono font-bold">
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setDetailModalOpen(true);
+                        }}
+                        className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1.5"
+                        title="Xem chi tiết đơn hàng"
+                      >
+                        <span>{order.code}</span>
+                      </button>
                     </td>
 
                     <td className="px-6 py-4">
@@ -277,6 +288,18 @@ function OrdersPage() {
 
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* Eye Detail Button */}
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setDetailModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                          title="Xem chi tiết đơn hàng"
+                        >
+                          <Eye size={16} />
+                        </button>
+
                         {Number(order.status) === 1 && (
                           <>
                             <button
@@ -349,7 +372,25 @@ function OrdersPage() {
         )}
       </div>
 
-      {/* Modals */}
+      {/* Detail Modal */}
+      <OrderDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedOrder(null);
+        }}
+        order={selectedOrder}
+        onOpenComplete={(ord) => {
+          setSelectedOrder(ord);
+          setCompleteModalOpen(true);
+        }}
+        onOpenCancel={(ord) => {
+          setSelectedOrder(ord);
+          setCancelModalOpen(true);
+        }}
+      />
+
+      {/* Complete Modal */}
       <CompleteOrderModal
         isOpen={completeModalOpen}
         onClose={() => {
@@ -361,6 +402,7 @@ function OrdersPage() {
         isLoading={actionLoading}
       />
 
+      {/* Cancel Modal */}
       <CancelOrderModal
         isOpen={cancelModalOpen}
         onClose={() => {
