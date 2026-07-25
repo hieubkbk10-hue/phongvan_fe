@@ -5,6 +5,7 @@ export interface MediaItem {
   size?: number;
   mime_type?: string;
   is_main?: boolean;
+  is_primary?: boolean;
   created_at?: string;
 }
 
@@ -43,15 +44,40 @@ export interface UpdateProductInput extends Partial<CreateProductInput> {
   id: string;
 }
 
-// LOGIC: Bóc tách danh sách media an toàn, không sử dụng `any`
+// LOGIC: Bóc tách danh sách media an toàn, xử lý cả mảng trực tiếp và Fractal wrapper { data: [...] }
 export const getMediaList = (media: unknown): MediaItem[] => {
   if (!media) return [];
-  if (Array.isArray(media)) return media as MediaItem[];
-  if (typeof media === 'object' && media !== null) {
-    const values = Object.values(media);
-    if (values.every((item) => typeof item === 'object' && item !== null && 'url' in item)) {
-      return values as MediaItem[];
+  let rawItems: unknown[] = [];
+  if (Array.isArray(media)) {
+    rawItems = media;
+  } else if (typeof media === 'object' && media !== null) {
+    if ('data' in media && Array.isArray((media as { data: unknown }).data)) {
+      rawItems = (media as { data: unknown[] }).data;
+    } else {
+      rawItems = Object.values(media);
     }
   }
-  return [];
+
+  return rawItems
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === 'object' && item !== null && 'url' in item
+    )
+    .map((item) => {
+      const isPrimary = Boolean(item.is_primary || item.is_main);
+      return {
+        id: String(item.id || ''),
+        url: String(item.url || ''),
+        name: item.name
+          ? String(item.name)
+          : item.filename
+            ? String(item.filename)
+            : undefined,
+        size: typeof item.size === 'number' ? item.size : undefined,
+        mime_type: item.mime_type ? String(item.mime_type) : undefined,
+        is_main: isPrimary,
+        is_primary: isPrimary,
+        created_at: item.created_at ? String(item.created_at) : undefined,
+      };
+    });
 };

@@ -103,7 +103,7 @@ export const deleteProductMedia = async (productId: string, mediaId: string) => 
 
 export const setMainProductMedia = async (productId: string, mediaId: string) => {
   const response = await apiClient.patch<{ data: MediaItem }>(
-    `/products/${productId}/media/${mediaId}/main`
+    `/products/${productId}/media/${mediaId}/primary`
   );
   return response.data.data;
 };

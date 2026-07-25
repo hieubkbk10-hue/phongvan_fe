@@ -55,7 +55,13 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
       setErrorMsg(null);
       const newMedia = await uploadProductMedia(product.id, file);
       if (newMedia) {
-        setLocalMedia((prev) => [...prev, newMedia]);
+        const isPrimary = Boolean(newMedia.is_primary || newMedia.is_main);
+        const mappedMedia: ExtendedMediaItem = {
+          ...newMedia,
+          is_main: isPrimary,
+          is_primary: isPrimary,
+        };
+        setLocalMedia((prev) => [...prev, mappedMedia]);
       }
       onMediaUpdated();
     } catch (err: unknown) {
@@ -75,7 +81,13 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
     const previousMedia = [...localMedia];
     try {
       setActionMediaId(mediaId);
-      setLocalMedia((prev) => prev.map((m) => ({ ...m, is_main: m.id === mediaId })));
+      setLocalMedia((prev) =>
+        prev.map((m) => ({
+          ...m,
+          is_main: m.id === mediaId,
+          is_primary: m.id === mediaId,
+        }))
+      );
       await setMainProductMedia(product.id, mediaId);
       onMediaUpdated();
     } catch (err: unknown) {
@@ -184,56 +196,59 @@ export const ProductMediaModal: React.FC<ProductMediaModalProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
-              {localMedia.map((item) => (
-                <div
-                  key={item.id}
-                  className={`group relative rounded-xl overflow-hidden border bg-slate-100 dark:bg-slate-800 transition-all ${
-                    item.is_main
-                      ? 'border-amber-500 ring-2 ring-amber-500/20'
-                      : 'border-slate-200 dark:border-slate-700'
-                  }`}
-                >
-                  <img src={item.url} alt="Product media" className="w-full h-36 object-cover" />
+              {localMedia.map((item) => {
+                const isMainPhoto = Boolean(item.is_main || item.is_primary);
+                return (
+                  <div
+                    key={item.id}
+                    className={`group relative rounded-xl overflow-hidden border bg-slate-100 dark:bg-slate-800 transition-all ${
+                      isMainPhoto
+                        ? 'border-amber-500 ring-2 ring-amber-500/20'
+                        : 'border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    <img src={item.url} alt="Product media" className="w-full h-36 object-cover" />
 
-                  {/* Badges */}
-                  {item.is_main && (
-                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-white font-bold text-[10px] uppercase rounded-md shadow-xs flex items-center gap-1">
-                      <Star size={10} fill="currentColor" /> Ảnh chính
-                    </span>
-                  )}
+                    {/* Badges */}
+                    {isMainPhoto && (
+                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-white font-bold text-[10px] uppercase rounded-md shadow-xs flex items-center gap-1">
+                        <Star size={10} fill="currentColor" /> Ảnh chính
+                      </span>
+                    )}
 
-                  {/* Hover Overlay Actions */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-                    {!item.is_main && (
+                    {/* Hover Overlay Actions */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                      {!isMainPhoto && (
+                        <button
+                          onClick={() => handleSetMain(item.id)}
+                          disabled={actionMediaId === item.id}
+                          className="p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
+                          title="Đặt làm ảnh chính"
+                        >
+                          {actionMediaId === item.id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Star size={16} />
+                          )}
+                        </button>
+                      )}
+
                       <button
-                        onClick={() => handleSetMain(item.id)}
+                        onClick={() => handleDelete(item.id)}
                         disabled={actionMediaId === item.id}
-                        className="p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
-                        title="Đặt làm ảnh chính"
+                        className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors"
+                        title="Xóa ảnh"
                       >
                         {actionMediaId === item.id ? (
                           <Loader2 size={16} className="animate-spin" />
                         ) : (
-                          <Star size={16} />
+                          <Trash2 size={16} />
                         )}
                       </button>
-                    )}
-
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      disabled={actionMediaId === item.id}
-                      className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors"
-                      title="Xóa ảnh"
-                    >
-                      {actionMediaId === item.id ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <Trash2 size={16} />
-                      )}
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
