@@ -1,12 +1,67 @@
+import { useState, useEffect, useCallback } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Package, Users, ShoppingCart, Image as ImageIcon, ArrowUpRight, TrendingUp, Clock, AlertCircle } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { Package, Users, ShoppingCart, Image as ImageIcon, ArrowUpRight, TrendingUp, Clock } from 'lucide-react';
+import { getProducts } from '@/features/products/api/productsApi';
+import { getCustomers } from '@/features/customers/api/customersApi';
+import { getOrders } from '@/features/orders/api/ordersApi';
+import { getMediaList } from '@/features/products/types';
+import { useRealtimeSync } from '@/features/real-time/hooks/useRealtimeSync';
 
 export const Route = createFileRoute('/admin/dashboard')({
   component: DashboardOverviewPage,
 });
 
 function DashboardOverviewPage() {
+  const [stats, setStats] = useState({
+    productsCount: 0,
+    pendingOrdersCount: 0,
+    customersCount: 0,
+    mediaCount: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboardStats = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [prodRes, custRes, orderRes] = await Promise.all([
+        getProducts({ limit: 100 }),
+        getCustomers({ limit: 100 }),
+        getOrders({ limit: 100, status: 1 }), // Pending
+      ]);
+
+      const products = prodRes.data || [];
+      const totalMedia = products.reduce((acc, p) => acc + getMediaList(p.media).length, 0);
+
+      setStats({
+        productsCount: prodRes.meta?.pagination?.total || products.length,
+        pendingOrdersCount: orderRes.meta?.pagination?.total || orderRes.data.length,
+        customersCount: custRes.meta?.pagination?.total || custRes.data.length,
+        mediaCount: totalMedia,
+      });
+    } catch (err) {
+      console.error('Lỗi tải thống kê Dashboard:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
+
+  // Real-time Soketi WebSocket listener for Dashboard Overview
+  useRealtimeSync({
+    channel: 'orders',
+    events: ['OrderCreated', 'OrderCompleted', 'OrderCancelled', 'OrderDeleted'],
+    onEvent: () => fetchDashboardStats(),
+  });
+
+  useRealtimeSync({
+    channel: 'products',
+    events: ['ProductCreated', 'ProductUpdated', 'ProductDeleted'],
+    onEvent: () => fetchDashboardStats(),
+  });
+
   return (
     <div className="space-y-6">
       {/* Top Welcome Banner */}
@@ -33,7 +88,9 @@ function DashboardOverviewPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sản phẩm</p>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">--</h3>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {loading ? '--' : stats.productsCount}
+            </h3>
             <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1 font-medium">
               <TrendingUp size={12} /> Đang kinh doanh
             </p>
@@ -47,7 +104,9 @@ function DashboardOverviewPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Đơn hàng Pending</p>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">--</h3>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {loading ? '--' : stats.pendingOrdersCount}
+            </h3>
             <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1 font-medium">
               <Clock size={12} /> Cần xử lý
             </p>
@@ -61,7 +120,9 @@ function DashboardOverviewPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Khách hàng</p>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">--</h3>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {loading ? '--' : stats.customersCount}
+            </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
               Định dạng E.164
             </p>
@@ -75,7 +136,9 @@ function DashboardOverviewPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Thư viện Media</p>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">--</h3>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {loading ? '--' : stats.mediaCount}
+            </h3>
             <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1 font-medium">
               Max 9 ảnh / sản phẩm
             </p>

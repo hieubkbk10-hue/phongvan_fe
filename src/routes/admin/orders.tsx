@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ShoppingCart, Plus, Search, Filter, CheckCircle2, XCircle, Trash2, Clock, Eye, Phone, MapPin, Loader2 } from 'lucide-react';
+import { ShoppingCart, Plus, Search, Filter, CheckCircle2, XCircle, Trash2, Clock, Phone, Loader2 } from 'lucide-react';
 import type { Order, OrderStatus, CompleteOrderInput, CancelOrderInput } from '@/features/orders/types';
 import { getOrders, completeOrder, cancelOrder, deleteOrder } from '@/features/orders/api/ordersApi';
 import { CompleteOrderModal } from '@/features/orders/components/CompleteOrderModal';
 import { CancelOrderModal } from '@/features/orders/components/CancelOrderModal';
+import { useRealtimeSync } from '@/features/real-time/hooks/useRealtimeSync';
 
 export const Route = createFileRoute('/admin/orders')({
   component: OrdersPage,
@@ -48,15 +49,29 @@ function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
+  // Real-time Soketi WebSocket listener for Orders
+  useRealtimeSync({
+    channel: 'orders',
+    events: ['OrderCreated', 'OrderCompleted', 'OrderCancelled', 'OrderDeleted'],
+    onEvent: () => {
+      fetchOrders();
+    },
+  });
+
   const handleCompleteConfirm = async (data: CompleteOrderInput) => {
     if (!selectedOrder) return;
+    const previousOrders = [...orders];
     try {
       setActionLoading(true);
-      await completeOrder(selectedOrder.id, data);
+      // Optimistic Status Update to Completed (2)
+      setOrders((prev) =>
+        prev.map((o) => (o.id === selectedOrder.id ? { ...o, status: 2 } : o))
+      );
       setCompleteModalOpen(false);
+      await completeOrder(selectedOrder.id, data);
       setSelectedOrder(null);
-      fetchOrders();
     } catch (err: any) {
+      setOrders(previousOrders); // Rollback on error
       alert(err?.response?.data?.message || 'Hoàn thành đơn hàng thất bại.');
     } finally {
       setActionLoading(false);
@@ -65,13 +80,18 @@ function OrdersPage() {
 
   const handleCancelConfirm = async (data: CancelOrderInput) => {
     if (!selectedOrder) return;
+    const previousOrders = [...orders];
     try {
       setActionLoading(true);
-      await cancelOrder(selectedOrder.id, data);
+      // Optimistic Status Update to Cancelled (5)
+      setOrders((prev) =>
+        prev.map((o) => (o.id === selectedOrder.id ? { ...o, status: 5 } : o))
+      );
       setCancelModalOpen(false);
+      await cancelOrder(selectedOrder.id, data);
       setSelectedOrder(null);
-      fetchOrders();
     } catch (err: any) {
+      setOrders(previousOrders); // Rollback on error
       alert(err?.response?.data?.message || 'Hủy đơn hàng thất bại.');
     } finally {
       setActionLoading(false);
@@ -89,10 +109,13 @@ function OrdersPage() {
     }
     if (!confirm(`Bạn có chắc chắn muốn xóa đơn hàng "${order.code}"?`)) return;
 
+    const previousOrders = [...orders];
+    // Optimistic Delete
+    setOrders((prev) => prev.filter((o) => o.id !== order.id));
     try {
       await deleteOrder(order.id);
-      fetchOrders();
     } catch (err: any) {
+      setOrders(previousOrders); // Rollback on error
       alert(err?.response?.data?.message || 'Xóa đơn hàng thất bại.');
     }
   };
@@ -101,7 +124,7 @@ function OrdersPage() {
     switch (status) {
       case 1:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse">
             <Clock size={12} /> Pending (1)
           </span>
         );
