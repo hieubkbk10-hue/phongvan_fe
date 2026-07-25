@@ -4,27 +4,43 @@ import { useAuthStore } from '../stores/useAuthStore';
 import type { LoginPayload, AuthResponse } from '../types';
 
 export const loginApi = async (credentials: LoginPayload): Promise<AuthResponse> => {
-  let responseData: any;
-  try {
-    const res = await apiClient.post('/v1/clients/web/login', credentials);
-    responseData = res.data;
-  } catch (err1) {
-    try {
-      const res = await apiClient.post('/v1/login', credentials);
-      responseData = res.data;
-    } catch (err2) {
-      const res = await apiClient.post('/auth/login', credentials);
-      responseData = res.data;
-    }
+  // 1. Send credentials to Apiato Web Client Login Proxy (/v1/clients/web/login)
+  const response = await apiClient.post('/clients/web/login', {
+    email: credentials.email,
+    password: credentials.password,
+  });
+
+  const payload = response.data?.data || response.data;
+  const token = payload?.access_token || payload?.token;
+
+  if (!token) {
+    throw new Error('Access token not returned from server.');
   }
 
-  const payload = responseData?.data || responseData;
-  const token = payload?.access_token || payload?.token || 'admin-session-token';
-  const user = payload?.user || {
+  // 2. Fetch authenticated profile from /v1/profile
+  let user = {
     id: '1',
-    name: 'Admin',
+    name: credentials.email.split('@')[0],
     email: credentials.email,
   };
+
+  try {
+    const profileRes = await apiClient.get('/profile', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const profileData = profileRes.data?.data || profileRes.data;
+    if (profileData) {
+      user = {
+        id: profileData.id || '1',
+        name: profileData.name || credentials.email.split('@')[0],
+        email: profileData.email || credentials.email,
+      };
+    }
+  } catch (err) {
+    console.warn('Could not fetch user profile details:', err);
+  }
 
   return { user, token };
 };
