@@ -320,10 +320,11 @@ function OrdersPage() {
 
                     <td className="px-6 py-4">
                       <p className="font-bold text-slate-900 dark:text-slate-100 truncate">
-                        {order.customer_name}
+                        {order.customer_name_snapshot || order.customer_name || 'Khách vãng lai'}
                       </p>
                       <p className="text-xs text-slate-400 flex items-center gap-1 font-mono mt-0.5 truncate">
-                        <Phone size={12} /> {order.customer_phone || 'N/A'}
+                        <Phone size={12} />{' '}
+                        {order.customer_phone_snapshot || order.customer_phone || 'N/A'}
                       </p>
                     </td>
 

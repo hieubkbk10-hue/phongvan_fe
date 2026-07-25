@@ -16,10 +16,19 @@ export interface OrderItem {
 export interface Order {
   id: string;
   code: string;
-  customer_id: string;
+  customer_id?: string;
   customer_name?: string;
   customer_phone?: string;
+  customer_name_snapshot?: string;
+  customer_phone_snapshot?: string;
+  customer_address_snapshot?: string;
   total_amount: number;
+  subtotal?: number;
+  shipping_fee?: number;
+  advance_payment?: number;
+  remaining_amount?: number;
+  shipping_carrier?: string | null;
+  delivery_date?: string | null;
   status: OrderStatus;
   payment_method?: number;
   bank_name?: string | null;
@@ -28,6 +37,7 @@ export interface Order {
   note?: string | null;
   cancel_reason?: string | null;
   items?: OrderItem[] | Record<string, unknown> | null;
+  customer?: Record<string, unknown> | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;

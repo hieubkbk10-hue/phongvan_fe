@@ -17,22 +17,10 @@ import {
 import type { Order, OrderStatus } from '@/types';
 import { getOrderItemList } from '@/types';
 
-interface ExtendedOrder extends Order {
-  customer_name_snapshot?: string;
-  customer_phone_snapshot?: string;
-  customer_address_snapshot?: string;
-  shipping_carrier?: string;
-  delivery_date?: string;
-  subtotal?: number;
-  shipping_fee?: number;
-  advance_payment?: number;
-  remaining_amount?: number;
-}
-
 interface OrderDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order: ExtendedOrder | null;
+  order: Order | null;
   onOpenComplete?: (order: Order) => void;
   onOpenCancel?: (order: Order) => void;
 }
