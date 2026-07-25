@@ -38,7 +38,7 @@ function ProductsPage() {
         status: statusFilter,
       });
       
-      let items = result.data || [];
+      let items = Array.isArray(result.data) ? result.data : [];
       if (statusFilter !== undefined) {
         items = items.filter((p) => Number(p.status) === Number(statusFilter));
       }
@@ -46,6 +46,8 @@ function ProductsPage() {
       setProducts(items);
       if (result.meta?.pagination) {
         setTotalPages(result.meta.pagination.total_pages);
+      } else {
+        setTotalPages(1);
       }
     } catch (error) {
       console.error('Lỗi tải danh sách sản phẩm:', error);
@@ -185,17 +187,21 @@ function ProductsPage() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Filter size={16} className="text-slate-400 shrink-0" />
           <select
-            value={statusFilter === undefined ? 'all' : statusFilter}
+            value={statusFilter === undefined ? 'all' : String(statusFilter)}
             onChange={(e) => {
               const val = e.target.value;
-              setStatusFilter(val === 'all' ? undefined : Number(val));
+              if (val === 'all') {
+                setStatusFilter(undefined);
+              } else {
+                setStatusFilter(Number(val));
+              }
               setPage(1);
             }}
             className="w-full sm:w-48 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value={1}>Hoạt động (Active)</option>
-            <option value={0}>Tạm ngưng (Inactive)</option>
+            <option value="1">Hoạt động (Active)</option>
+            <option value="0">Tạm ngưng (Inactive)</option>
           </select>
         </div>
       </div>

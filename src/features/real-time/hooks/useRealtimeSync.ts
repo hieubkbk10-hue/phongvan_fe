@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { echo } from '@/lib/echo';
 
 export interface UseRealtimeSyncOptions {
@@ -14,6 +14,12 @@ export const useRealtimeSync = ({
   isPrivate = false,
   onEvent,
 }: UseRealtimeSyncOptions) => {
+  const onEventRef = useRef(onEvent);
+
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
+
   useEffect(() => {
     if (!channel || !events || events.length === 0) return;
 
@@ -28,8 +34,8 @@ export const useRealtimeSync = ({
 
     events.forEach((evt) => {
       const handler = (data: any) => {
-        if (onEvent) {
-          onEvent(evt, data);
+        if (onEventRef.current) {
+          onEventRef.current(evt, data);
         }
       };
       listeners[evt] = handler;
@@ -48,5 +54,5 @@ export const useRealtimeSync = ({
         echo.leave(channel);
       }
     };
-  }, [channel, JSON.stringify(events), isPrivate, onEvent]);
+  }, [channel, JSON.stringify(events), isPrivate]);
 };
